@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="MyDiet">
+<meta name="theme-color" content="#EDF3F8">
+<title>MyDiet × ナカジマ</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐟</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EDF3F8; --card:#FFFFFF; --ink:#0E2A47; --sub:#5B7089; --line:#D9E3EC; --soft:#F4F8FB;
+  --hero:#0E2A47; --sea:#2B6CB0; --yuzu:#FFC23D; --leaf:#1FA971; --leaf-soft:#E3F6EC;
+  --tomato:#E5484D; --tomato-soft:#FDECEC;
+  --p:#3D7FD9; --f:#F2A93B; --c:#9B6DDB; --fi:#1FA971; --salt:#7A8CA0;
+  --shadow:0 1px 2px rgba(14,42,71,.05), 0 8px 24px rgba(14,42,71,.06);
+  --jp:"M PLUS Rounded 1c","Hiragino Maru Gothic ProN","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
+  --num:"Outfit","Helvetica Neue",Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0A1624; --card:#122338; --ink:#E7EEF6; --sub:#9DB0C4; --line:#223A55; --soft:#0F1E30;
+    --hero:#16365A; --leaf-soft:#123325; --tomato-soft:#3A1E22; --shadow:none;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0A1624; --card:#122338; --ink:#E7EEF6; --sub:#9DB0C4; --line:#223A55; --soft:#0F1E30;
+  --hero:#16365A; --leaf-soft:#123325; --tomato-soft:#3A1E22; --shadow:none;
+}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--jp);font-size:15px;line-height:1.65;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+img{max-width:100%}
+a{color:var(--sea)}
+.wrap{max-width:560px;margin:0 auto;padding:10px 16px 120px}
+.num{font-family:var(--num);font-variant-numeric:tabular-nums}
+.muted{color:var(--sub)} .small{font-size:12.5px}
+:focus-visible{outline:3px solid var(--yuzu);outline-offset:2px}
+
+header.top{display:flex;justify-content:space-between;align-items:center;padding:6px 2px 12px}
+header.top .date{color:var(--sub);font-size:13px;font-weight:500}
+header.top h1{margin:0;font-size:22px;font-weight:800;letter-spacing:.01em}
+.iconbtn{width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:var(--card);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.iconbtn svg{width:20px;height:20px;stroke:var(--ink);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:18px;margin-bottom:14px;box-shadow:var(--shadow)}
+.card h2{font-size:16px;margin:0 0 12px;font-weight:800}
+.hrow{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px}
+.hrow h2{margin:0}
+
+/* ---- hero ---- */
+.hero{background:var(--hero);color:#fff;border-radius:28px;padding:18px 18px 20px;margin-bottom:14px;position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;right:-60px;bottom:-80px;width:220px;height:220px;border-radius:50%;border:28px solid rgba(255,255,255,.04)}
+.hero-top{display:flex;gap:10px;align-items:flex-start}
+.hero-top .naka{flex:0 0 auto;margin-top:2px}
+.bubble{background:#fff;color:#0E2A47;border-radius:18px;border-top-left-radius:6px;padding:10px 14px;font-size:14px;font-weight:500;line-height:1.6}
+.bubble b{font-weight:800}
+.hero-main{display:grid;grid-template-columns:168px 1fr;gap:14px;align-items:center;margin-top:16px;position:relative;z-index:1}
+.ring{position:relative;width:168px;height:168px}
+.ring svg{transform:rotate(-90deg)}
+.ring .c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.ring .l1{font-size:12px;opacity:.8;font-weight:500}
+.ring .big{font-family:var(--num);font-size:46px;font-weight:800;line-height:1.05;letter-spacing:-.02em}
+.ring .l2{font-size:12px;opacity:.8}
+.ring.over .big{color:#FF9A9D}
+.hstats{display:grid;gap:8px}
+.hs{background:rgba(255,255,255,.08);border-radius:14px;padding:8px 12px}
+.hs span{display:block;font-size:11.5px;opacity:.75}
+.hs b{font-family:var(--num);font-size:22px;font-weight:700}
+.hs small{font-size:11px;opacity:.7;margin-left:2px}
+.rice{margin-top:14px;background:rgba(255,194,61,.16);color:#FFE3A1;border-radius:12px;padding:8px 12px;font-size:13px;position:relative;z-index:1}
+
+/* ---- journey ---- */
+.jtrack{position:relative;height:16px;border-radius:10px;background:var(--soft);border:1px solid var(--line);margin:30px 8px 10px}
+.jfill{position:absolute;left:0;top:0;bottom:0;border-radius:10px;background:linear-gradient(90deg,#7FB3E6,var(--sea))}
+.jfish{position:absolute;top:-30px;transform:translateX(-50%);animation:bob 2.6s ease-in-out infinite}
+.jflag{position:absolute;right:-8px;top:-26px;font-size:20px}
+@keyframes bob{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,-4px)}}
+@media (prefers-reduced-motion: reduce){.jfish{animation:none}}
+.jlabels{display:flex;justify-content:space-between;font-size:12px;color:var(--sub)}
+.jlabels b{display:block;font-family:var(--num);font-size:16px;color:var(--ink)}
+.jlabels div:nth-child(2){text-align:center} .jlabels div:last-child{text-align:right}
+.chips3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.chip{background:var(--soft);border-radius:14px;padding:10px 8px;text-align:center}
+.chip .e{font-size:18px}
+.chip b{display:block;font-family:var(--num);font-size:20px;font-weight:800;line-height:1.2}
+.chip span{font-size:11px;color:var(--sub)}
+
+/* ---- nutrient tiles ---- */
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.tile{border-radius:16px;padding:10px 10px 12px;background:var(--soft);border:1px solid var(--line);position:relative;overflow:hidden}
+.tile::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--tc)}
+.tile .tl{font-size:12px;font-weight:700;color:var(--sub)}
+.tile .tb{font-family:var(--num);font-size:26px;font-weight:800;line-height:1.15;color:var(--tc)}
+.tile .ts{font-size:11px;color:var(--sub)}
+.tile .tbar{height:6px;border-radius:4px;background:var(--line);margin-top:6px;overflow:hidden}
+.tile .tbar i{display:block;height:100%;background:var(--tc);border-radius:4px}
+.tile .tf{font-family:var(--num);font-size:10.5px;color:var(--sub);margin-top:4px}
+.tile.bad{background:var(--tomato-soft);border-color:transparent}
+.tile.bad .tb{color:var(--tomato)}
+.tile.good{background:var(--leaf-soft);border-color:transparent}
+
+/* ---- reco / tips ---- */
+.reco{display:grid;gap:8px}
+.reco .item{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:11px 14px;border-radius:14px;background:var(--leaf-soft)}
+.reco .item b{font-weight:700;font-size:14px}
+.reco .item small{font-family:var(--num);color:var(--sub);white-space:nowrap}
+.note{padding:10px 12px;border-radius:12px;font-size:13.5px;margin-bottom:8px}
+.note.warn{background:var(--tomato-soft)} .note.ok{background:var(--leaf-soft)}
+.tip{padding:12px 0;border-bottom:1px dashed var(--line)}
+.tip:last-child{border-bottom:none;padding-bottom:0}
+.tip b{display:block;font-size:14.5px}
+.tip p{margin:4px 0 2px;font-size:13.5px}
+.tip a{font-size:12px}
+.minihead{display:flex;align-items:center;gap:8px}
+
+/* ---- log list ---- */
+details.meal{border-bottom:1px solid var(--line)}
+details.meal:last-child{border-bottom:none}
+details.meal summary{list-style:none;display:flex;align-items:center;gap:10px;padding:11px 0;cursor:pointer}
+details.meal summary::-webkit-details-marker{display:none}
+.mtype{font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;background:var(--soft);color:var(--sub);flex:0 0 auto}
+.mtitle{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
+.mk{font-family:var(--num);font-weight:700}
+.mbody{padding:0 0 12px}
+.pfc{display:flex;height:10px;border-radius:6px;overflow:hidden;margin:4px 0 8px;background:var(--line)}
+.pfc i{display:block;height:100%}
+.nchips{display:flex;flex-wrap:wrap;gap:6px}
+.nchips span{font-size:12px;border-radius:999px;padding:3px 10px;background:var(--soft);font-family:var(--num)}
+.mitems{font-size:12.5px;color:var(--sub);margin:8px 0}
+.x{border:none;background:none;color:var(--sub);font-size:13px;cursor:pointer;text-decoration:underline;padding:0}
+
+/* ---- charts ---- */
+.chart{width:100%;height:auto;display:block}
+.chart text{font-family:var(--num);font-size:10px;fill:var(--sub)}
+
+/* ---- forms ---- */
+label.f{display:block;font-size:13px;color:var(--sub);margin:10px 0 4px;font-weight:500}
+input.i,select.i,textarea.i{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:var(--soft);font-size:16px}
+textarea.i{min-height:72px;resize:vertical}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.btn{display:inline-flex;justify-content:center;align-items:center;gap:6px;border:none;border-radius:999px;padding:13px 18px;font-weight:800;cursor:pointer;background:var(--line);color:var(--ink);text-decoration:none}
+.btn.primary{background:var(--ink);color:var(--card)}
+.btn.yuzu{background:var(--yuzu);color:#0E2A47}
+.btn.block{width:100%;margin-top:14px}
+.btn.ghost{background:transparent;border:1px solid var(--line)}
+.btn.sm{padding:7px 13px;font-size:13px;font-weight:700}
+.btn:disabled{opacity:.5}
+.seg{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:12px;scrollbar-width:none}
+.seg button{flex:0 0 auto;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:8px 14px;font-size:13.5px;font-weight:700;cursor:pointer}
+.seg button.on{background:var(--ink);color:var(--card);border-color:var(--ink)}
+.preview{margin-top:10px;border-radius:14px;max-height:280px;object-fit:contain;display:none}
+.itemcard{border:1px solid var(--line);border-radius:14px;padding:10px;margin:8px 0}
+.itemcard .grid3 input{padding:8px;font-size:15px}
+.itemcard .mini{font-size:11px;color:var(--sub);margin:4px 0 2px}
+.badge{display:inline-block;font-size:11.5px;border-radius:999px;padding:2px 9px;background:var(--soft);margin-left:6px;font-weight:700}
+.sum{background:var(--soft);border-radius:12px;padding:10px 12px;font-size:13.5px}
+.sum .num{font-weight:700}
+.privacy{font-size:12px;color:var(--sub);background:var(--soft);border-radius:10px;padding:8px 10px;margin-top:10px}
+
+/* ---- chat ---- */
+.coachhead{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.coachhead b{font-size:17px;font-weight:800;display:block}
+.coachhead span{font-size:12px;color:var(--sub)}
+.msgs{display:flex;flex-direction:column;gap:12px;max-height:56vh;overflow-y:auto;padding:4px 2px}
+.mrow{display:flex;gap:6px;align-items:flex-end}
+.mrow.user{justify-content:flex-end}
+.msg{max-width:82%;padding:10px 13px;border-radius:18px;font-size:14.5px;word-break:break-word}
+.msg.user{background:var(--ink);color:var(--card);border-bottom-right-radius:6px}
+.msg.assistant{background:var(--soft);border:1px solid var(--line);border-bottom-left-radius:6px}
+.msg.err{background:var(--tomato-soft)}
+.chips{display:flex;gap:6px;overflow-x:auto;margin:10px 0;scrollbar-width:none}
+.chips button{flex:0 0 auto;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 12px;font-size:12.5px;font-weight:700;cursor:pointer}
+.chatin{display:flex;gap:8px;align-items:flex-end}
+.chatin textarea{flex:1;min-height:46px;max-height:140px}
+.typing{font-size:13px;color:var(--sub)}
+
+/* ---- body (おなか) ---- */
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.compare figure{margin:0;border-radius:14px;overflow:hidden;background:var(--soft);position:relative}
+.compare img{width:100%;aspect-ratio:3/4;object-fit:cover;display:block}
+.compare figcaption{position:absolute;left:0;right:0;bottom:0;padding:18px 10px 8px;background:linear-gradient(transparent,rgba(0,0,0,.6));color:#fff;font-size:12px}
+.compare figcaption b{font-family:var(--num);font-size:16px;display:block}
+.diffbar{margin-top:10px;text-align:center;font-weight:800;font-size:15px}
+.diffbar .num{font-size:20px;color:var(--leaf)}
+.gal{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.gal button{border:none;padding:0;border-radius:12px;overflow:hidden;position:relative;aspect-ratio:3/4;cursor:pointer;background:var(--soft)}
+.gal img{width:100%;height:100%;object-fit:cover;display:block}
+.gal span{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(transparent,rgba(0,0,0,.6));color:#fff;font-size:11px;padding:12px 6px 4px;font-family:var(--num);text-align:left}
+table.tbl{width:100%;border-collapse:collapse;font-size:13px}
+table.tbl th{text-align:left;color:var(--sub);font-weight:500;padding:6px 4px;border-bottom:1px solid var(--line)}
+table.tbl td{padding:8px 4px;border-bottom:1px solid var(--line)}
+table.tbl td.n{font-family:var(--num);text-align:right}
+.modal{position:fixed;inset:0;background:rgba(5,15,28,.75);display:none;align-items:center;justify-content:center;z-index:60;padding:16px}
+.modal.show{display:flex}
+.mbox{background:var(--card);border-radius:20px;max-width:520px;width:100%;max-height:90vh;overflow:auto;padding:14px}
+.mbox img{width:100%;border-radius:12px;display:block}
+.kv{display:grid;grid-template-columns:1fr auto;gap:6px 12px;font-size:14px;margin:0}
+.kv dt{color:var(--sub)} .kv dd{margin:0;font-family:var(--num);font-weight:700;text-align:right}
+.arrow{color:var(--sub);margin:0 4px}
+
+/* ---- nav ---- */
+nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);z-index:20}
+nav.tabs .in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
+nav.tabs button{background:none;border:none;padding:8px 0 10px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;font-weight:700;color:var(--sub);cursor:pointer}
+nav.tabs button svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+nav.tabs button.on{color:var(--ink)}
+nav.tabs button.add .dot{width:50px;height:50px;border-radius:50%;background:var(--yuzu);display:flex;align-items:center;justify-content:center;margin-top:-22px;box-shadow:0 6px 16px rgba(255,194,61,.5)}
+nav.tabs button.add .dot svg{stroke:#0E2A47;stroke-width:2.6}
+
+.toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--card);padding:10px 16px;border-radius:999px;font-size:13.5px;z-index:70;opacity:0;transition:opacity .25s;pointer-events:none;max-width:90vw;text-align:center}
+.toast.show{opacity:1}
+.busy{position:fixed;inset:0;background:rgba(5,15,28,.4);display:none;align-items:center;justify-content:center;z-index:65}
+.busy.show{display:flex}
+.busy .box{background:var(--card);padding:16px 20px;border-radius:18px;display:flex;gap:10px;align-items:center;font-weight:700}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div><div class="date" id="hdr-date"></div><h1>MyDiet</h1></div>
+    <button class="iconbtn" aria-label="設定" onclick="go('settings')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg></button>
+  </header>
+  <main>
+    <section id="view-home"></section>
+    <section id="view-chat" hidden></section>
+    <section id="view-log" hidden></section>
+    <section id="view-body" hidden></section>
+    <section id="view-goal" hidden></section>
+    <section id="view-settings" hidden></section>
+  </main>
+</div>
+
+<nav class="tabs"><div class="in">
+  <button data-v="home" onclick="go('home')"><svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>ホーム</button>
+  <button data-v="chat" onclick="go('chat')"><svg viewBox="0 0 24 24"><path d="M2 12c3-5 8-7 13-5 2 .8 4 2.5 5 5-1 2.5-3 4.2-5 5-5 2-10 0-13-5z"/><path d="M2 12l-0 0M20 12l2-3v6z"/><circle cx="15.5" cy="10.5" r="1"/></svg>ナカジマ</button>
+  <button data-v="log" class="add" onclick="go('log')"><span class="dot"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span>記録</button>
+  <button data-v="body" onclick="go('body')"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="3"/><circle cx="12" cy="10" r="3"/><path d="M7 18c1.2-2.2 3-3 5-3s3.8.8 5 3"/></svg>からだ</button>
+  <button data-v="goal" onclick="go('goal')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg>目標</button>
+</div></nav>
+
+<div class="modal" id="modal" onclick="if(event.target===this)closeModal()"><div class="mbox" id="mbox"></div></div>
+<div class="toast" id="toast"></div>
+<div class="busy" id="busy"><div class="box"><span id="busy-fish"></span><span id="busy-msg">解析中…</span></div></div>
+
+<script>
+/* ================= 基本 ================= */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const z2 = n => String(n).padStart(2,'0');
+const todayStr = (d = new Date()) => `${d.getFullYear()}-${z2(d.getMonth()+1)}-${z2(d.getDate())}`;
+const uid = () => Math.random().toString(36).slice(2,9) + Date.now().toString(36);
+const fmt = n => Math.round(n || 0).toLocaleString('ja-JP');
+const f1 = n => (Math.round((n || 0) * 10) / 10).toFixed(1);
+const md = s => s.slice(5).replace('-','/');
+const KEY = 'mydiet_v1';
+
+function defaults(){
+  return { profile:null, meals:[], exercises:[], weights:[], chat:[], notes:'', lastReflect:'', tips:null,
+           settings:{ apiKey:'', model:'claude-sonnet-4-6', eatBack:50 } };
+}
+function load(){
+  try{ const raw = localStorage.getItem(KEY);
+    if(raw){ const d = JSON.parse(raw), b = defaults(); return {...b, ...d, settings:{...b.settings, ...(d.settings||{})}}; }
+  }catch(e){}
+  return defaults();
+}
+let S = load();
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){ toast('保存できませんでした。設定からデータを書き出してください'); } }
+let toastT;
+function toast(m){ const t=$('#toast'); t.textContent=m; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2800); }
+function busy(on, msg='解析中…'){ $('#busy-fish').innerHTML=naka(40,'happy'); $('#busy-msg').textContent=msg; $('#busy').classList.toggle('show', on); }
+
+/* ================= ナカジマ（カツオ） ================= */
+function naka(size=64, mood='happy'){
+  const mouth = mood==='worry'
+    ? '<path d="M100 61 Q105 57 110 61" stroke="#0E2A47" stroke-width="2.6" fill="none" stroke-linecap="round"/>'
+    : '<path d="M99 57 Q105 64 111 57" stroke="#0E2A47" stroke-width="2.6" fill="none" stroke-linecap="round"/>';
+  const brow = mood==='worry' ? '<path d="M79 29 L95 33" stroke="#0E2A47" stroke-width="2.6" stroke-linecap="round"/>'
+    : mood==='cheer' ? '<path d="M80 31 Q88 25 97 30" stroke="#0E2A47" stroke-width="2.6" fill="none" stroke-linecap="round"/>' : '';
+  const extra = mood==='cheer' ? '<path d="M110 14 l2.2 5 5 2.2 -5 2.2 -2.2 5 -2.2 -5 -5 -2.2 5 -2.2z" fill="#FFC23D"/>'
+    : mood==='worry' ? '<path d="M104 26 q3 5 0 7 q-3 -2 0 -7z" fill="#7FB3E6"/>' : '';
+  return `<svg class="naka" width="${size}" height="${Math.round(size*100/120)}" viewBox="0 0 120 100" role="img" aria-label="ナカジマ">
+    <path d="M5 26 L32 50 L5 74 Q15 50 5 26z" fill="#1F5F99"/>
+    <path d="M44 23 Q56 1 78 20z" fill="#1F5F99"/>
+    <path d="M56 78 Q64 95 78 79z" fill="#1F5F99"/>
+    <ellipse cx="66" cy="50" rx="47" ry="32" fill="#2B6CB0"/>
+    <path d="M22 54 Q66 88 112 52 Q110 70 93 78 Q66 89 40 77 Q27 68 22 54z" fill="#E4EDF6"/>
+    <path d="M40 62 H78 M45 69 H80 M52 76 H76" stroke="#9DB4CC" stroke-width="2.2" stroke-linecap="round"/>
+    <path d="M58 46 Q68 52 60 60" stroke="#1F5F99" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <circle cx="88" cy="41" r="10.5" fill="#fff"/><circle cx="90" cy="42" r="6" fill="#0E2A47"/><circle cx="92.6" cy="39.4" r="2.2" fill="#fff"/>
+    <ellipse cx="95" cy="56" rx="5.5" ry="3.2" fill="#FF8FA3" opacity=".9"/>
+    ${mouth}${brow}${extra}</svg>`;
+}
+
+/* ================= 写真ストア（IndexedDB） ================= */
+const DB = {
+  db:null,
+  open(){ return new Promise((res,rej)=>{ if(this.db) return res(this.db);
+    const r=indexedDB.open('mydiet',1); r.onupgradeneeded=()=>r.result.createObjectStore('belly',{keyPath:'id'});
+    r.onsuccess=()=>{this.db=r.result; res(this.db);}; r.onerror=()=>rej(r.error); }); },
+  async tx(mode, fn){ const db=await this.open(); return new Promise((res,rej)=>{ const t=db.transaction('belly',mode), st=t.objectStore('belly'); const q=fn(st); t.oncomplete=()=>res(q&&q.result); t.onerror=()=>rej(t.error); }); },
+  async all(){ const r = await this.tx('readonly', st=>st.getAll()); return (r||[]).sort((a,b)=> a.date<b.date?-1: a.date>b.date?1: a.ts-b.ts); },
+  put(o){ return this.tx('readwrite', st=>st.put(o)); },
+  del(id){ return this.tx('readwrite', st=>st.delete(id)); },
+  clear(){ return this.tx('readwrite', st=>st.clear()); }
+};
+
+/* ================= 計算 ================= */
+function sortedWeights(){ return [...S.weights].sort((a,b)=> a.date<b.date?-1:1); }
+function weightOn(date){ const w=S.weights.find(x=>x.date===date); return w||null; }
+function currentWeight(){ const w=sortedWeights(); return w.length ? w[w.length-1].weight : (S.profile?.weight || 0); }
+function currentWaist(){ const w=sortedWeights().filter(x=>x.waist); return w.length ? w[w.length-1].waist : (S.profile?.waist || null); }
+function calc(p){
+  if(!p) return null;
+  const w=currentWeight(), hM=p.height/100, male=p.sex==='male';
+  const bmr = 10*w + 6.25*p.height - 5*p.age + (male?5:-161);
+  const tdee = bmr*p.activity;
+  const floor = Math.max(bmr, male?1500:1200);
+  const minW = 18.5*hM*hM;
+  const target = Math.max(p.targetWeight, Math.ceil(minW*10)/10);
+  const lose = w - target;
+  let intake = tdee; if(lose>0) intake = Math.max(tdee - p.pace*7200/7, floor);
+  const deficit = Math.max(tdee-intake,0), weeklyLoss = deficit*7/7200;
+  const weeks = (lose>0 && weeklyLoss>0.05) ? lose/weeklyLoss : 0;
+  const waistNow = currentWaist();
+  const protein = Math.round(1.5*target), fat = Math.round(intake*0.25/9);
+  const carb = Math.max(0, Math.round((intake-protein*4-fat*9)/4));
+  return { w, bmr, tdee, floor, minW, target, lose, intake:Math.round(intake), deficit:Math.round(deficit), weeklyLoss, weeks,
+    end:new Date(Date.now()+weeks*7*864e5), bmiNow:w/hM/hM, bmiTarget:target/hM/hM, waistNow,
+    waistTarget: waistNow ? Math.max(waistNow-Math.max(lose,0),0) : null,
+    clamped: lose>0 && (tdee-p.pace*7200/7)<floor, tooSlow: lose>0 && weeklyLoss<=0.05, targetAdjusted: p.targetWeight<target,
+    protein, fat, carb, fiber: male?21:18, salt: male?7.5:6.5 };
+}
+function dayTotals(d){
+  const t={kcal:0,p:0,f:0,c:0,fiber:0,salt:0};
+  S.meals.filter(m=>m.date===d).forEach(m=>m.items.forEach(i=>{ for(const k in t) t[k]+= +i[k]||0; }));
+  t.ex = S.exercises.filter(e=>e.date===d).reduce((a,e)=>a+(+e.kcal||0),0);
+  return t;
+}
+function mealTotals(m){ const t={kcal:0,p:0,f:0,c:0,fiber:0,salt:0}; m.items.forEach(i=>{ for(const k in t) t[k]+= +i[k]||0; }); return t; }
+function budgetFor(d,k){ return Math.round(k.intake + dayTotals(d).ex*(S.settings.eatBack/100)); }
+function streak(){
+  const days=new Set(S.meals.map(m=>m.date)); let n=0; const d=new Date();
+  if(!days.has(todayStr(d))) d.setDate(d.getDate()-1);
+  while(days.has(todayStr(d))){ n++; d.setDate(d.getDate()-1); }
+  return n;
+}
+function weekOk(k){
+  let ok=0, logged=0;
+  for(let i=0;i<7;i++){ const d=new Date(); d.setDate(d.getDate()-i); const s=todayStr(d), t=dayTotals(s);
+    if(t.kcal>0){ logged++; if(t.kcal<=budgetFor(s,k)) ok++; } }
+  return {ok, logged};
+}
+
+/* ================= ナビ ================= */
+let view='home';
+function go(v){
+  view=v;
+  ['home','chat','log','body','goal','settings'].forEach(x=> $('#view-'+x).hidden = x!==v);
+  document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.toggle('on', b.dataset.v===v));
+  render(); window.scrollTo({top:0});
+  if(v==='chat') maybeAutoReflect();
+}
+function render(){
+  const d=new Date(); $('#hdr-date').textContent=`${d.getMonth()+1}月${d.getDate()}日（${'日月火水木金土'[d.getDay()]}）`;
+  ({home:renderHome, chat:renderChat, log:renderLog, body:renderBody, goal:renderGoal, settings:renderSettings})[view]();
+}
+
+/* ================= ホーム ================= */
+function nakaMessage(k,t,budget,st){
+  const R=budget-Math.round(t.kcal), h=new Date().getHours(), pg=k.protein-t.p;
+  let pre = st>=3 ? `<b>${st}日連続</b>で記録中！すごいね。` : '';
+  if(t.kcal===0) return {mood:'cheer', m: pre + (h<11 ? 'おはよう！今日も一緒に泳ごう。まずは朝ごはんを記録してみてね。' : 'まだ今日の記録がないよ。食べたものを撮るだけでいいから、気軽に送ってね。')};
+  if(R<0) return {mood:'worry', m:`今日は目安より<b>${fmt(-R)}kcal</b>多めだね。でも1日で結果は決まらないよ。明日の朝ごはんで少し整えよう。`};
+  if(R<=300) return {mood:'happy', m: pre + `いいペース！残り<b>${fmt(R)}kcal</b>。${pg>10?`たんぱく質をあと<b>${Math.round(pg)}g</b>とれると満点だよ。`:'この調子で軽めにいこう。'}`};
+  return {mood:'happy', m: pre + `あと<b>${fmt(R)}kcal</b>食べられるよ。${pg>10?`たんぱく質があと<b>${Math.round(pg)}g</b>ほしいな。`:'バランスもいい感じ！'}`};
+}
+function heroRing(eaten,budget){
+  const r=70, C=2*Math.PI*r, pct=Math.min(eaten/Math.max(budget,1),1), over=eaten>budget;
+  return `<svg width="168" height="168" viewBox="0 0 168 168">
+    <circle cx="84" cy="84" r="${r}" stroke="rgba(255,255,255,.13)" stroke-width="16" fill="none"/>
+    <circle cx="84" cy="84" r="${r}" stroke="${over?'#FF7A7E':'#FFC23D'}" stroke-width="16" fill="none" stroke-linecap="round" stroke-dasharray="${C*pct} ${C}"/></svg>`;
+}
+function nutriTile(label,eaten,goal,color,kind){
+  const rem=goal-eaten, pct=Math.min(eaten/Math.max(goal,.01)*100,100), dec=goal<30;
+  const v=x=>dec?f1(x):Math.round(x);
+  let big,sub,cls='';
+  if(kind==='limit'){ big=v(Math.abs(rem)); sub= rem>=0?'g まで OK':'g 超過'; if(rem<0) cls='bad'; }
+  else if(kind==='min'){ if(rem>0){ big=v(rem); sub='g とりたい'; } else { big='達成'; sub='目標クリア'; cls='good'; } }
+  else { big=(rem<0?'+':'')+v(Math.abs(rem)); sub= rem>=0?'g とれる':'g オーバー'; if(rem<0) cls='bad'; }
+  return `<div class="tile ${cls}" style="--tc:${color}"><div class="tl">${label}</div><div class="tb">${big}</div><div class="ts">${sub}</div>
+    <div class="tbar"><i style="width:${pct}%"></i></div><div class="tf">${v(eaten)} / ${goal}g</div></div>`;
+}
+const FOODS=[
+  {n:'サラダチキン(1個)',k:110,p:24,fi:0},{n:'ゆで卵(1個)',k:80,p:6,fi:0},{n:'無糖ギリシャヨーグルト',k:90,p:10,fi:0},
+  {n:'納豆(1パック)',k:90,p:8,fi:3},{n:'ツナ缶(ノンオイル)',k:70,p:16,fi:0},{n:'冷奴(150g)',k:85,p:8,fi:.6},
+  {n:'焼き鮭(1切れ)',k:130,p:18,fi:0},{n:'ブロッコリー(100g)',k:35,p:4,fi:5},{n:'海藻サラダ(ノンオイル)',k:30,p:1,fi:3},
+  {n:'もち麦おにぎり',k:180,p:4,fi:3},{n:'バナナ(1本)',k:90,p:1,fi:1},{n:'素焼きナッツ(20g)',k:120,p:4,fi:1.5},
+  {n:'プロテイン(1杯)',k:110,p:20,fi:0},{n:'きのこスープ',k:40,p:2,fi:3},{n:'枝豆(100g)',k:120,p:11,fi:4.6},{n:'キウイ(1個)',k:50,p:1,fi:2.5}
+];
+function recommend(k,t,budget){
+  const R=budget-t.kcal, pg=k.protein-t.p, fg=k.fiber-t.fiber, notes=[];
+  if(R<=0) notes.push({c:'warn',m:'今日の目安に到達。この後はお茶や水、または温かいスープ（〜40kcal）くらいにしておこう。'});
+  if(t.salt>k.salt) notes.push({c:'warn',m:`塩分が目標（${k.salt}g未満）を超えたよ。水分と、野菜・果物を意識してね。`});
+  const picks=FOODS.filter(x=>x.k<=Math.max(R,0)).map(x=>({...x,s:(pg>0?Math.min(x.p,pg)*4:0)+(fg>0?Math.min(x.fi,fg)*20:0)+1-x.k/1000})).sort((a,b)=>b.s-a.s).slice(0,3);
+  return {notes,picks};
+}
+const STATIC_TIPS=[
+  {title:'野菜から先に食べる', body:'食事の最初に野菜や汁物を食べると、血糖値の上がり方がゆるやかになりやすいよ。'},
+  {title:'汁物は半分残す', body:'ラーメンや味噌汁のスープを半分残すだけで、塩分をぐっと減らせるんだ。'},
+  {title:'たんぱく質は手のひら1枚分', body:'肉・魚・卵・大豆製品を毎食手のひら1枚分とると、満腹感も筋肉もキープしやすいよ。'},
+  {title:'遅い夕食は分けて食べる', body:'帰りが遅い日は夕方におにぎりを食べて、夜はおかず中心にすると体の負担が軽くなるよ。'},
+  {title:'飲み物のカロリーを見直す', body:'甘いカフェラテやジュースは意外と高カロリー。無糖のお茶や炭酸水に替えるのも立派な作戦だよ。'},
+  {title:'20分かけてゆっくり食べる', body:'満腹のサインが脳に届くまで時間がかかるから、よく噛んでゆっくり食べるのが近道だよ。'},
+  {title:'外食は定食スタイル', body:'丼や麺単品より、主食・主菜・副菜がそろう定食のほうが栄養バランスが整いやすいよ。'},
+  {title:'コンビニは「足し算」', body:'おにぎりにサラダチキンやゆで卵を足すと、たんぱく質不足を手軽にカバーできるよ。'}
+];
+function renderHome(){
+  const el=$('#view-home');
+  if(!S.profile){
+    el.innerHTML=`<div class="hero"><div class="hero-top">${naka(84,'cheer')}<div class="bubble">はじめまして、<b>ナカジマ</b>です！まずは今のからだと、なりたいからだを教えてね。ゴールまでしっかり伴走するよ。</div></div>
+      <button class="btn yuzu block" onclick="go('goal')">目標を設定する</button></div>`;
+    return;
+  }
+  const k=calc(S.profile), d=todayStr(), t=dayTotals(d), budget=budgetFor(d,k), R=budget-Math.round(t.kcal);
+  const st=streak(), msg=nakaMessage(k,t,budget,st), wk=weekOk(k), rc=recommend(k,t,budget);
+  const start=S.profile.startWeight||k.w, total=start-k.target, done=start-k.w;
+  const prog = total>0 ? Math.max(0,Math.min(1,done/total)) : 1;
+  const daysLeft = k.weeks ? Math.ceil(k.weeks*7) : 0;
+
+  const meals=S.meals.filter(m=>m.date===d).sort((a,b)=>MEAL_TYPES.indexOf(a.type)-MEAL_TYPES.indexOf(b.type));
+  const exs=S.exercises.filter(e=>e.date===d);
+  let list = meals.map(m=>{ const mt=mealTotals(m), pk=mt.p*4, fk=mt.f*9, ck=mt.c*4, tot=Math.max(pk+fk+ck,1);
+    return `<details class="meal"><summary><span class="mtype">${m.type}</span><span class="mtitle">${esc(m.title||m.items.map(i=>i.name).join('、'))}</span><span class="mk">${fmt(mt.kcal)}</span></summary>
+      <div class="mbody"><div class="pfc" aria-label="PFCバランス"><i style="width:${pk/tot*100}%;background:var(--p)"></i><i style="width:${fk/tot*100}%;background:var(--f)"></i><i style="width:${ck/tot*100}%;background:var(--c)"></i></div>
+      <div class="nchips"><span>たんぱく質 ${f1(mt.p)}g</span><span>脂質 ${f1(mt.f)}g</span><span>炭水化物 ${f1(mt.c)}g</span><span>食物繊維 ${f1(mt.fiber)}g</span><span>塩分 ${f1(mt.salt)}g</span></div>
+      <div class="mitems">${m.items.map(i=>esc(i.name)+' '+fmt(i.kcal)+'kcal').join(' ／ ')}</div>
+      <button class="x" onclick="delMeal('${m.id}')">この記録を削除</button></div></details>`; }).join('');
+  list += exs.map(e=>`<details class="meal"><summary><span class="mtype">運動</span><span class="mtitle">${esc(e.name)}${e.minutes?`（${e.minutes}分）`:''}</span><span class="mk">−${fmt(e.kcal)}</span></summary>
+      <div class="mbody"><button class="x" onclick="delEx('${e.id}')">この記録を削除</button></div></details>`).join('');
+  if(!list) list=`<p class="muted small" style="margin:0">まだ記録がないよ。下の黄色い「＋」から、レシートや写真で記録できるよ。</p>`;
+
+  el.innerHTML=`
+  <div class="hero">
+    <div class="hero-top">${naka(72,msg.mood)}<div class="bubble">${msg.m}</div></div>
+    <div class="hero-main">
+      <div class="ring ${R<0?'over':''}">${heroRing(t.kcal,budget)}
+        <div class="c"><div class="l1">${R>=0?'あと':'オーバー'}</div><div class="big">${fmt(Math.abs(R))}</div><div class="l2">kcal</div></div></div>
+      <div class="hstats">
+        <div class="hs"><span>今日の目安</span><b>${fmt(budget)}</b><small>kcal</small></div>
+        <div class="hs"><span>食べた</span><b>${fmt(t.kcal)}</b><small>kcal</small></div>
+        <div class="hs"><span>運動</span><b>${fmt(t.ex)}</b><small>kcal</small></div>
+      </div>
+    </div>
+    ${R>0?`<div class="rice">🍚 残りはごはん（茶碗1杯150g）なら約 <b class="num">${f1(R/234)}</b> 杯分</div>`:''}
+  </div>
+
+  <div class="card">
+    <div class="hrow"><h2>ゴールまでの航路</h2><span class="badge num">${Math.round(prog*100)}%</span></div>
+    <div class="jtrack"><div class="jfill" style="width:${prog*100}%"></div><div class="jfish" style="left:${prog*100}%">${naka(40,prog>=1?'cheer':'happy')}</div><div class="jflag">🏁</div></div>
+    <div class="jlabels"><div>スタート<b>${f1(start)}</b></div><div>いま<b>${f1(k.w)}</b></div><div>ゴール<b>${f1(k.target)}</b></div></div>
+    <div class="chips3">
+      <div class="chip"><div class="e">🔥</div><b>${st}</b><span>日連続で記録</span></div>
+      <div class="chip"><div class="e">🐟</div><b>${done>0?'−':''}${f1(Math.abs(done))}</b><span>kg スタートから</span></div>
+      <div class="chip"><div class="e">🎯</div><b>${wk.ok}/7</b><span>日 目安内（7日）</span></div>
+    </div>
+    ${daysLeft?`<p class="muted small" style="margin:12px 0 0;text-align:center">このペースならゴールまであと約<b class="num">${daysLeft}</b>日</p>`:''}
+  </div>
+
+  <div class="card">
+    <div class="hrow"><h2>今日あとどれだけとれる？</h2></div>
+    <div class="tiles">
+      ${nutriTile('たんぱく質',t.p,k.protein,'var(--p)','min')}
+      ${nutriTile('炭水化物',t.c,k.carb,'var(--c)','goal')}
+      ${nutriTile('脂質',t.f,k.fat,'var(--f)','goal')}
+      ${nutriTile('食物繊維',t.fiber,k.fiber,'var(--fi)','min')}
+      ${nutriTile('塩分',t.salt,k.salt,'var(--salt)','limit')}
+      <div class="tile" style="--tc:var(--sea)"><div class="tl">カロリー</div><div class="tb">${R<0?'+':''}${fmt(Math.abs(R))}</div><div class="ts">${R>=0?'kcal とれる':'kcal オーバー'}</div><div class="tbar"><i style="width:${Math.min(t.kcal/budget*100,100)}%"></i></div><div class="tf">${fmt(t.kcal)} / ${fmt(budget)}</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="minihead" style="margin-bottom:10px">${naka(34)}<h2 style="margin:0">ナカジマのおすすめ</h2></div>
+    ${rc.notes.map(n=>`<div class="note ${n.c}">${n.m}</div>`).join('')}
+    <div class="reco">${rc.picks.map(p=>`<div class="item"><b>${p.n}</b><small>${p.k}kcal・P${p.p}g</small></div>`).join('')}</div>
+    <button class="btn ghost sm" style="margin-top:12px" onclick="askCoach('今日の残りカロリーと不足している栄養素を踏まえて、次の食事のおすすめを具体的に教えて（コンビニ・自炊・外食それぞれ1案）')">ナカジマに詳しく聞く</button>
+  </div>
+
+  <div class="card" id="tips-card"></div>
+
+  <div class="card"><div class="hrow"><h2>今日の記録</h2><span class="muted small">タップで栄養の内訳</span></div>${list}</div>
+
+  <div class="card"><h2>直近7日の摂取カロリー</h2>${weekChart(k)}</div>`;
+  renderTipsCard();
+  if(S.settings.apiKey && (!S.tips || S.tips.date!==todayStr()) && !tipsLoading && !tipsTried) loadTips(false);
+}
+function weekChart(k){
+  const days=[...Array(7)].map((_,i)=>{const d=new Date(); d.setDate(d.getDate()-6+i); return d;});
+  const vals=days.map(d=>dayTotals(todayStr(d)).kcal);
+  const W=320,H=150,pl=8,pb=20,pt=12, mx=Math.max(k.intake*1.35,...vals,1), bw=(W-pl*2)/7*.56;
+  const y=v=>H-pb-(H-pb-pt)*v/mx, ty=y(k.intake);
+  let s=`<svg viewBox="0 0 ${W} ${H}" class="chart" role="img" aria-label="直近7日の摂取カロリー">`;
+  vals.forEach((v,i)=>{ const cx=pl+(W-pl*2)/7*(i+.5), over=v>budgetFor(todayStr(days[i]),k);
+    s+=`<rect x="${cx-bw/2}" y="${y(v)}" width="${bw}" height="${Math.max(H-pb-y(v),0)}" rx="6" fill="${v===0?'var(--line)':over?'var(--tomato)':'var(--sea)'}" opacity="${i===6?1:.7}"/>
+        <text x="${cx}" y="${H-5}" text-anchor="middle">${days[i].getMonth()+1}/${days[i].getDate()}</text>`; });
+  return s+`<line x1="${pl}" x2="${W-pl}" y1="${ty}" y2="${ty}" stroke="var(--yuzu)" stroke-width="2.5" stroke-dasharray="6 4"/><text x="${W-pl}" y="${ty-5}" text-anchor="end">目標 ${fmt(k.intake)}</text></svg>`;
+}
+const MEAL_TYPES=['朝食','昼食','間食','夕食'];
+function delMeal(id){ if(!confirm('この食事記録を削除しますか？')) return; S.meals=S.meals.filter(m=>m.id!==id); save(); render(); }
+function delEx(id){ if(!confirm('この運動記録を削除しますか？')) return; S.exercises=S.exercises.filter(e=>e.id!==id); save(); render(); }
+
+/* ================= TIPS（Web検索） ================= */
+let tipsLoading=false, tipsTried=false;
+function renderTipsCard(){
+  const el=$('#tips-card'); if(!el) return;
+  const online = S.tips && S.tips.items && S.tips.items.length;
+  const di=Math.floor(Date.now()/864e5);
+  const items = online ? S.tips.items : [0,1,2].map(i=>STATIC_TIPS[(di+i*3)%STATIC_TIPS.length]);
+  el.innerHTML=`<div class="hrow"><div class="minihead">${naka(34,'cheer')}<h2 style="margin:0">今日の食事TIPS</h2></div>
+    ${S.settings.apiKey?`<button class="btn ghost sm" onclick="loadTips(true)" ${tipsLoading?'disabled':''}>${tipsLoading?'探し中…':'新しく探す'}</button>`:''}</div>
+    ${tipsLoading?`<p class="muted small" style="margin:0 0 6px">ナカジマがネットで最新のTIPSを探しているよ…</p>`:''}
+    ${items.map(t=>`<div class="tip"><b>${esc(t.title)}</b><p>${esc(t.body)}</p>${t.url&&/^https:\/\//.test(t.url)?`<a href="${esc(t.url)}" target="_blank" rel="noopener">出典：${esc(t.source||t.url)}</a>`:''}</div>`).join('')}
+    ${!S.settings.apiKey?`<p class="muted small" style="margin:8px 0 0">設定でAPIキーを登録すると、ネットから今日のきみに合うTIPSを持ってくるよ。</p>`:''}
+    ${!online && S.tipsErr && !tipsLoading?`<p class="muted small" style="margin:8px 0 0">ネット検索ができなかったので定番TIPSを表示中（${esc(S.tipsErr)}）</p>`:''}`;
+}
+async function loadTips(force){
+  if(!S.settings.apiKey) return toast('設定でAPIキーを登録してください');
+  if(tipsLoading) return;
+  tipsLoading=true; tipsTried=true; renderTipsCard();
+  try{
+    let focus='全般';
+    if(S.profile){ const k=calc(S.profile), t=dayTotals(todayStr()), wk=[];
+      if(k.protein-t.p>15) wk.push('たんぱく質の不足');
+      if(t.salt>k.salt*0.7) wk.push('塩分のとりすぎ');
+      if(k.fiber-t.fiber>8) wk.push('食物繊維の不足');
+      if(S.meals.slice(-20).filter(m=>m.source==='eatout').length>=3) wk.push('外食が多い');
+      if(wk.length) focus=wk.join('、'); }
+    const month=new Date().getMonth()+1;
+    const txt=await callClaude({
+      system:`あなたはカツオのキャラクター「ナカジマ」。ダイエット中のユーザーのために、ウェブ検索で信頼できる情報源（厚生労働省、農林水産省、e-ヘルスネット、大学・学会、管理栄養士が監修した記事など）を調べ、今日役立つ食事のTIPSを3つ選ぶ。
+出力はJSONのみ（前置き・コードブロック不要）。形式: {"tips":[{"title":"20字以内","body":"ナカジマの口調（一人称ぼく、相手はきみ）で70字以内。原文をそのまま写さず自分の言葉で要約","source":"サイト名","url":"実際に参照したページのURL"}]}
+極端な食事制限や断食をすすめる内容は選ばない。`,
+      messages:[{role:'user',content:`今日のテーマ候補: ${focus}。季節: ${month}月。すぐ実践できる具体的なTIPSを3つ。`}],
+      max_tokens:2500, tools:[{type:'web_search_20250305', name:'web_search', max_uses:3}]
+    });
+    const j=parseJSON(txt);
+    const items=(j.tips||[]).slice(0,3).map(t=>({title:String(t.title||''),body:String(t.body||''),source:String(t.source||''),url:String(t.url||'')}));
+    if(!items.length) throw new Error('TIPSが見つかりませんでした');
+    S.tips={date:todayStr(), items}; S.tipsErr=''; save();
+  }catch(e){ S.tipsErr=e.message; if(force) toast(e.message); }
+  tipsLoading=false; renderTipsCard();
+}
+
+/* ================= Claude API ================= */
+async function callClaude({system, messages, max_tokens=1500, tools}){
+  const key=S.settings.apiKey; if(!key) throw new Error('設定画面でAnthropic APIキーを登録してください');
+  const body={model:S.settings.model||'claude-sonnet-4-6', max_tokens, system, messages}; if(tools) body.tools=tools;
+  const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
+    headers:{'content-type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+    body:JSON.stringify(body)});
+  let data; try{ data=await r.json(); }catch(e){ throw new Error('APIの応答を読み取れませんでした'); }
+  if(!r.ok) throw new Error(data?.error?.message || `APIエラー（${r.status}）`);
+  return (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
+}
+function parseJSON(t){
+  const c=t.replace(/```json|```/g,'').trim(), s=c.indexOf('{'), e=c.lastIndexOf('}');
+  if(s<0||e<0) throw new Error('結果の形式が読み取れませんでした。もう一度お試しください');
+  return JSON.parse(c.slice(s,e+1));
+}
+function resizeImage(file, max, q=0.85){
+  return new Promise((res,rej)=>{ const img=new Image(), url=URL.createObjectURL(file);
+    img.onload=()=>{ const s=Math.min(1,max/Math.max(img.width,img.height)), c=document.createElement('canvas');
+      c.width=Math.round(img.width*s); c.height=Math.round(img.height*s); c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+      URL.revokeObjectURL(url); res(c.toDataURL('image/jpeg',q)); };
+    img.onerror=()=>rej(new Error('画像を読み込めませんでした（JPEG/PNGでお試しください）')); img.src=url; });
+}
+const NUTRI_SYS=`あなたは日本の管理栄養士です。与えられた情報から食品ごとの栄養価を推定し、JSONのみを返します。前置き・説明文・コードブロックは不要です。
+形式: {"title":"短い食事名","items":[{"name":"品名と量","kcal":整数,"p":たんぱく質g,"f":脂質g,"c":炭水化物g,"fiber":食物繊維g,"salt":食塩相当量g}],"confidence":"high|medium|low","comment":"推定の前提や注意を1〜2文"}
+ルール: 日本食品標準成分表、一般的な市販品・チェーン店の公開栄養成分を参考にする。kcalは整数、他は小数1桁。分からない場合も最も妥当な値を推定する。`;
+const PROMPTS={
+  receipt:'これはレシートです。飲食物だけを抽出してください。日用品・袋・割引・税・合計の行は除外。数量（×2など）を反映し、商品名から一般的な内容量を想定して推定してください。家族分・作り置きの可能性がありそうなら comment で触れてください。',
+  photo:'この食事写真の料理を特定し、見た目の量（器の大きさ・盛り付け）から1人前の栄養価を推定してください。調理油やドレッシングも考慮してください。'
+};
+
+/* ================= 記録 ================= */
+let logMode='photo', pending=null;
+const ACTS=[['ウォーキング（普通）',3.5],['早歩き',4.3],['ジョギング',7.0],['ランニング（速め）',9.8],['自転車',6.8],['筋トレ（中強度）',3.5],['筋トレ（高強度）',6.0],['ヨガ・ストレッチ',2.5],['水泳',6.0],['HIIT',8.0],['掃除・家事',3.3],['ゴルフ',4.8]];
+const NK=[['kcal','kcal'],['p','P(g)'],['f','F(g)'],['c','C(g)'],['fiber','繊維'],['salt','塩分']];
+function defaultType(){ const h=new Date().getHours(); return h<10?'朝食':h<15?'昼食':h<17?'間食':'夕食'; }
+function metaFields(){
+  return `<div class="grid2"><div><label class="f" for="m-date">日付</label><input class="i" type="date" id="m-date" value="${todayStr()}"></div>
+    <div><label class="f" for="m-type">区分</label><select class="i" id="m-type">${MEAL_TYPES.map(t=>`<option ${t===defaultType()?'selected':''}>${t}</option>`).join('')}</select></div></div>`;
+}
+function renderLog(){
+  const modes=[['receipt','🧾 レシート'],['photo','📷 食事写真'],['eatout','🍽 外食'],['manual','✏️ 手入力'],['exercise','🏃 運動'],['weight','⚖️ 体重'],['belly','🫃 おなか']];
+  $('#view-log').innerHTML = pending ? reviewHTML()
+    : `<div class="seg">${modes.map(([m,l])=>`<button class="${m===logMode?'on':''}" onclick="logMode='${m}';renderLog()">${l}</button>`).join('')}</div>${formFor(logMode)}`;
+  if(pending) refreshSum();
+}
+function formFor(m){
+  if(m==='receipt'||m==='photo') return `<div class="card"><h2>${m==='receipt'?'レシートから記録':'食事の写真から記録'}</h2>
+    <p class="muted small" style="margin-top:0">${m==='receipt'?'レシート全体が写るように撮影してね。食品だけを読み取って栄養素に分けるよ。':'真上か斜め上から、器全体が写るように撮ると精度が上がるよ。'}</p>
+    <input class="i" type="file" accept="image/*" id="f-img" onchange="showPreview(this)"><img id="f-prev" class="preview" alt="選んだ写真">
+    ${metaFields()}
+    <label class="f" for="f-note">補足（任意）</label><textarea class="i" id="f-note" placeholder="例）ご飯は大盛り／半分だけ食べた／ドレッシングなし"></textarea>
+    <button class="btn primary block" onclick="analyze('${m}')">AIで解析する</button></div>`;
+  if(m==='eatout') return `<div class="card"><h2>外食を記録</h2>
+    <p class="muted small" style="margin-top:0">分かる範囲でOK。チェーン店は公開値、個人店は近いメニューから試算するよ。</p>
+    <label class="f" for="e-shop">お店（チェーン名・ジャンル）</label><input class="i" id="e-shop" placeholder="例）大戸屋／町中華／居酒屋">
+    <label class="f" for="e-menu">食べたもの</label><textarea class="i" id="e-menu" placeholder="例）チキンかあさん煮定食、生ビール中1杯、枝豆"></textarea>
+    <div class="grid2"><div><label class="f" for="e-size">量</label><select class="i" id="e-size"><option>普通</option><option>少なめ</option><option>大盛り</option></select></div>
+    <div><label class="f" for="e-left">食べた量</label><select class="i" id="e-left"><option>完食</option><option>8割くらい</option><option>半分くらい</option></select></div></div>
+    ${metaFields()}<button class="btn primary block" onclick="analyze('eatout')">AIで試算する</button></div>`;
+  if(m==='manual') return `<div class="card"><h2>手入力</h2>
+    <label class="f" for="n-name">品名</label><input class="i" id="n-name" placeholder="例）サラダチキン プレーン">
+    <button class="btn ghost sm" style="margin-top:8px" onclick="analyze('manual')">品名からAIで推定する</button>
+    <p class="muted small">パッケージの表示など、分かっている数値は直接入れられるよ。</p>
+    <div class="grid3">${NK.map(([k,l])=>`<div><label class="f" for="n-${k}">${l}</label><input class="i" type="number" inputmode="decimal" step="0.1" id="n-${k}"></div>`).join('')}</div>
+    ${metaFields()}<button class="btn primary block" onclick="saveManual()">記録する</button></div>`;
+  if(m==='exercise') return `<div class="card"><h2>運動を記録</h2>
+    <label class="f" for="x-act">種類</label>
+    <select class="i" id="x-act" onchange="exToggle()">${ACTS.map(([n],i)=>`<option value="${i}">${n}</option>`).join('')}<option value="steps">歩数から計算</option><option value="custom">消費kcalを直接入力（スマートウォッチ等）</option></select>
+    <div id="x-min-row"><label class="f" for="x-min">時間（分）</label><input class="i" type="number" inputmode="numeric" id="x-min" placeholder="30"></div>
+    <div id="x-steps-row" hidden><label class="f" for="x-steps">歩数</label><input class="i" type="number" inputmode="numeric" id="x-steps" placeholder="8000"></div>
+    <div id="x-kcal-row" hidden><label class="f" for="x-name">内容</label><input class="i" id="x-name" placeholder="例）スマートウォッチ合計"><label class="f" for="x-kcal">消費kcal（活動分）</label><input class="i" type="number" inputmode="numeric" id="x-kcal"></div>
+    <label class="f" for="m-date">日付</label><input class="i" type="date" id="m-date" value="${todayStr()}">
+    <p class="muted small">消費量は「METs × 体重 × 時間 × 1.05」の目安だよ。</p>
+    <button class="btn primary block" onclick="saveEx()">記録する</button></div>`;
+  if(m==='weight') return `<div class="card"><h2>体重・腹囲を記録</h2>
+    <p class="muted small" style="margin-top:0">毎朝、起きてトイレの後など同じ条件で測ると変化が読みやすいよ。</p>
+    <div class="grid2"><div><label class="f" for="w-w">体重（kg）</label><input class="i" type="number" inputmode="decimal" step="0.1" id="w-w" value="${currentWeight()||''}"></div>
+    <div><label class="f" for="w-waist">腹囲（cm・任意）</label><input class="i" type="number" inputmode="decimal" step="0.1" id="w-waist"></div></div>
+    <label class="f" for="m-date">日付</label><input class="i" type="date" id="m-date" value="${todayStr()}">
+    <button class="btn primary block" onclick="saveWeight()">記録する</button></div>`;
+  if(m==='belly'){ const w=weightOn(todayStr()); return `<div class="card"><h2>おなかの写真を記録</h2>
+    <p class="muted small" style="margin-top:0">毎回同じ場所・同じ距離・同じ明るさで撮ると、変化がはっきり分かるよ。週1回くらいがおすすめ。</p>
+    <input class="i" type="file" accept="image/*" id="b-img" onchange="showPreview(this,'#b-prev')"><img id="b-prev" class="preview" alt="選んだ写真">
+    <div class="grid2"><div><label class="f" for="b-w">体重（kg・任意）</label><input class="i" type="number" inputmode="decimal" step="0.1" id="b-w" value="${w?w.weight:''}"></div>
+    <div><label class="f" for="b-waist">腹囲（cm・任意）</label><input class="i" type="number" inputmode="decimal" step="0.1" id="b-waist" value="${w&&w.waist?w.waist:''}"></div></div>
+    <label class="f" for="b-date">日付</label><input class="i" type="date" id="b-date" value="${todayStr()}">
+    <label class="f" for="b-memo">メモ（任意）</label><input class="i" id="b-memo" placeholder="例）朝・起床後">
+    <div class="privacy">🔒 写真はこのスマホの中だけに保存され、AIやインターネットには送られません。</div>
+    <button class="btn primary block" onclick="saveBelly()">写真を記録する</button></div>`; }
+  return '';
+}
+function showPreview(inp, sel='#f-prev'){ const f=inp.files[0], im=$(sel); if(!f){ im.style.display='none'; return; } im.src=URL.createObjectURL(f); im.style.display='block'; }
+function exToggle(){ const v=$('#x-act').value; $('#x-min-row').hidden=v==='steps'||v==='custom'; $('#x-steps-row').hidden=v!=='steps'; $('#x-kcal-row').hidden=v!=='custom'; }
+
+async function analyze(mode){
+  const date=$('#m-date').value, type=$('#m-type').value; let content;
+  if(mode==='receipt'||mode==='photo'){
+    const f=$('#f-img').files[0]; if(!f) return toast('写真を選んでください');
+    const note=$('#f-note').value.trim();
+    busy(true, mode==='receipt'?'レシートを読み取り中…':'料理を推定中…');
+    try{ const b64=(await resizeImage(f, mode==='receipt'?1600:1200)).split(',')[1];
+      content=[{type:'image',source:{type:'base64',media_type:'image/jpeg',data:b64}},{type:'text',text:PROMPTS[mode]+(note?`\n補足: ${note}`:'')}];
+    }catch(e){ busy(false); return toast(e.message); }
+  } else if(mode==='eatout'){
+    const menu=$('#e-menu').value.trim(); if(!menu) return toast('食べたものを入力してください');
+    content=`外食の栄養価を推定してください。外食は家庭料理より油・塩が多めである点を考慮してください。\nお店: ${$('#e-shop').value||'不明'}\nメニュー: ${menu}\n量: ${$('#e-size').value}\n食べた量: ${$('#e-left').value}（itemsには実際に食べた量の値を入れる）`;
+    busy(true,'外食を試算中…');
+  } else {
+    const n=$('#n-name').value.trim(); if(!n) return toast('品名を入力してください');
+    content=`次の食品の栄養価を推定してください: ${n}`; busy(true,'推定中…');
+  }
+  try{
+    const j=parseJSON(await callClaude({system:NUTRI_SYS, messages:[{role:'user',content}], max_tokens:2000}));
+    pending={source:mode, date, type, portion:100, title:j.title||'', comment:j.comment||'', confidence:j.confidence||'',
+      items:(j.items||[]).map(i=>({name:i.name||'',kcal:+i.kcal||0,p:+i.p||0,f:+i.f||0,c:+i.c||0,fiber:+i.fiber||0,salt:+i.salt||0}))};
+    if(!pending.items.length) pending.items=[{name:'',kcal:0,p:0,f:0,c:0,fiber:0,salt:0}];
+    renderLog();
+  }catch(e){ toast(e.message); } finally{ busy(false); }
+}
+function reviewHTML(){
+  const conf={high:'確度 高',medium:'確度 中',low:'確度 低'}[pending.confidence]||'';
+  return `<div class="card"><h2>内容を確認して記録${conf?`<span class="badge">${conf}</span>`:''}</h2>
+    ${pending.comment?`<div class="note ok small">${esc(pending.comment)}</div>`:''}
+    <label class="f" for="rv-title">食事名</label><input class="i" id="rv-title" value="${esc(pending.title)}" oninput="pending.title=this.value">
+    ${pending.items.map((it,i)=>`<div class="itemcard">
+      <div style="display:flex;gap:8px;align-items:center"><input class="i" value="${esc(it.name)}" aria-label="品名" oninput="upd(${i},'name',this.value)"><button class="x" onclick="pending.items.splice(${i},1);renderLog()">削除</button></div>
+      <div class="grid3">${NK.map(([k,l])=>`<div><div class="mini">${l}</div><input class="i" type="number" inputmode="decimal" step="0.1" value="${it[k]}" aria-label="${l}" oninput="upd(${i},'${k}',this.value)"></div>`).join('')}</div></div>`).join('')}
+    <button class="btn ghost sm" onclick="pending.items.push({name:'',kcal:0,p:0,f:0,c:0,fiber:0,salt:0});renderLog()">品目を追加</button>
+    <div class="grid2"><div><label class="f" for="rv-portion">自分が食べた割合（%）</label><input class="i" type="number" inputmode="numeric" id="rv-portion" value="${pending.portion}" oninput="pending.portion=+this.value||0;refreshSum()"></div>
+    <div><label class="f" for="rv-type">区分</label><select class="i" id="rv-type" onchange="pending.type=this.value">${MEAL_TYPES.map(t=>`<option ${t===pending.type?'selected':''}>${t}</option>`).join('')}</select></div></div>
+    <div class="sum" id="rv-sum" style="margin-top:12px"></div>
+    <button class="btn primary block" onclick="saveMeal()">この内容で記録する</button>
+    <button class="btn ghost block" style="margin-top:8px" onclick="pending=null;renderLog()">やめる</button></div>`;
+}
+function upd(i,k,v){ pending.items[i][k] = k==='name' ? v : (parseFloat(v)||0); refreshSum(); }
+function refreshSum(){
+  const el=$('#rv-sum'); if(!el) return;
+  const r=pending.portion/100, t={kcal:0,p:0,f:0,c:0,fiber:0,salt:0};
+  pending.items.forEach(i=>{ for(const k in t) t[k]+=(+i[k]||0)*r; });
+  let after='';
+  if(S.profile){ const k=calc(S.profile), d=dayTotals(pending.date), b=budgetFor(pending.date,k);
+    const rk=b-d.kcal-t.kcal, rp=k.protein-d.p-t.p, rs=k.salt-d.salt-t.salt;
+    after=`<div style="margin-top:6px">記録したあとの残り：カロリー <span class="num" style="color:${rk<0?'var(--tomato)':'inherit'}">${rk<0?'+'+fmt(-rk)+' オーバー':fmt(rk)+' kcal'}</span>、たんぱく質 <span class="num">${rp>0?'あと'+Math.round(rp)+'g':'達成'}</span>、塩分 <span class="num" style="color:${rs<0?'var(--tomato)':'inherit'}">${rs>=0?'あと'+f1(rs)+'g':f1(-rs)+'g 超過'}</span></div>`; }
+  el.innerHTML=`この食事：<span class="num">${fmt(t.kcal)} kcal</span>　P ${f1(t.p)}／F ${f1(t.f)}／C ${f1(t.c)}g　繊維 ${f1(t.fiber)}g　塩分 ${f1(t.salt)}g${after}`;
+}
+function saveMeal(){
+  const r=pending.portion/100;
+  const items=pending.items.filter(i=>i.name||i.kcal).map(i=>{ const o={name:i.name}; NK.forEach(([k])=>o[k]=Math.round((+i[k]||0)*r*10)/10); return o; });
+  if(!items.length) return toast('品目がありません');
+  S.meals.push({id:uid(), date:pending.date, type:pending.type, source:pending.source, title:pending.title, items, ts:Date.now()});
+  pending=null; save(); toast('記録したよ！'); go('home');
+}
+function saveManual(){
+  const name=$('#n-name').value.trim(), kcal=+$('#n-kcal').value;
+  if(!name||!kcal) return toast('品名とkcalを入力してください（または「AIで推定」）');
+  const it={name}; NK.forEach(([k])=>it[k]=+$('#n-'+k).value||0);
+  S.meals.push({id:uid(), date:$('#m-date').value, type:$('#m-type').value, source:'manual', title:name, items:[it], ts:Date.now()});
+  save(); toast('記録したよ！'); go('home');
+}
+function saveEx(){
+  const v=$('#x-act').value, w=currentWeight()||60, date=$('#m-date').value; let rec;
+  if(v==='custom'){ const kcal=+$('#x-kcal').value; if(!kcal) return toast('消費kcalを入力してください'); rec={name:$('#x-name').value||'運動',minutes:0,kcal}; }
+  else if(v==='steps'){ const st=+$('#x-steps').value; if(!st) return toast('歩数を入力してください'); const min=st/100; rec={name:`歩数 ${st.toLocaleString()}歩`,minutes:Math.round(min),kcal:Math.round(3.5*w*min/60*1.05)}; }
+  else { const min=+$('#x-min').value; if(!min) return toast('時間を入力してください'); const [n,me]=ACTS[+v]; rec={name:n,minutes:min,kcal:Math.round(me*w*min/60*1.05)}; }
+  S.exercises.push({id:uid(), date, ...rec}); save(); toast(`記録したよ！（約${rec.kcal}kcal）`); go('home');
+}
+function setWeight(date, weight, waist){
+  if(!weight) return;
+  const old=weightOn(date); S.weights=S.weights.filter(x=>x.date!==date);
+  S.weights.push({date, weight, waist: waist || (old&&old.waist) || null});
+}
+function saveWeight(){
+  const w=+$('#w-w').value; if(!w) return toast('体重を入力してください');
+  setWeight($('#m-date').value, w, +$('#w-waist').value||null); save(); toast('記録したよ！'); go('home');
+}
+async function saveBelly(){
+  const f=$('#b-img').files[0]; if(!f) return toast('写真を選んでください');
+  const date=$('#b-date').value, weight=+$('#b-w').value||null, waist=+$('#b-waist').value||null;
+  busy(true,'写真を保存中…');
+  try{
+    const full=await resizeImage(f,1080,0.82), thumb=await resizeImage(f,360,0.75);
+    await DB.put({id:uid(), date, ts:Date.now(), full, thumb, weight, waist, memo:$('#b-memo').value.trim()});
+    if(weight) { setWeight(date, weight, waist); save(); }
+    toast('おなかの写真を記録したよ！'); go('body');
+  }catch(e){ toast('保存できませんでした：'+e.message); } finally{ busy(false); }
+}
+
+/* ================= からだ（体重・おなか写真） ================= */
+let bellyCache=[], bodyMode='grid';
+function lineChart(pts, target, unit, label){
+  if(pts.length<2) return `<p class="muted small" style="margin:0">2回以上記録するとグラフが出るよ。</p>`;
+  const W=320,H=150,pl=32,pr=10,pt=14,pb=20;
+  const vals=pts.map(p=>p.v).concat(target!=null?[target]:[]), mn=Math.min(...vals)-.5, mx=Math.max(...vals)+.5;
+  const x=i=>pl+(W-pl-pr)*i/(pts.length-1), y=v=>pt+(H-pt-pb)*(mx-v)/(mx-mn);
+  const line=pts.map((p,i)=>`${x(i).toFixed(1)},${y(p.v).toFixed(1)}`).join(' ');
+  const area=`${pl},${H-pb} ${line} ${x(pts.length-1)},${H-pb}`;
+  return `<svg viewBox="0 0 ${W} ${H}" class="chart" role="img" aria-label="${label}">
+    <polygon points="${area}" fill="var(--sea)" opacity=".08"/>
+    ${target!=null?`<line x1="${pl}" x2="${W-pr}" y1="${y(target)}" y2="${y(target)}" stroke="var(--yuzu)" stroke-width="2.5" stroke-dasharray="6 4"/><text x="${W-pr}" y="${y(target)-5}" text-anchor="end">目標 ${f1(target)}${unit}</text>`:''}
+    <polyline points="${line}" fill="none" stroke="var(--sea)" stroke-width="2.6" stroke-linejoin="round"/>
+    ${pts.map((p,i)=>`<circle cx="${x(i)}" cy="${y(p.v)}" r="${i===pts.length-1?4.5:2.4}" fill="var(--sea)"/>`).join('')}
+    <text x="${pl-4}" y="${y(mx-.5)+3}" text-anchor="end">${f1(mx-.5)}</text><text x="${pl-4}" y="${y(mn+.5)+3}" text-anchor="end">${f1(mn+.5)}</text>
+    <text x="${pl}" y="${H-5}">${md(pts[0].date)}</text><text x="${W-pr}" y="${H-5}" text-anchor="end">${md(pts[pts.length-1].date)}</text></svg>`;
+}
+async function renderBody(){
+  const el=$('#view-body');
+  try{ bellyCache=await DB.all(); }catch(e){ bellyCache=[]; }
+  if(view!=='body') return;
+  const k=S.profile?calc(S.profile):null, ws=sortedWeights();
+  const wPts=ws.slice(-30).map(w=>({date:w.date,v:w.weight})), waPts=ws.filter(w=>w.waist).slice(-30).map(w=>({date:w.date,v:w.waist}));
+  let wkChange='';
+  if(ws.length>=2){ const last=ws[ws.length-1], ref=new Date(last.date); ref.setDate(ref.getDate()-7);
+    const prev=[...ws].reverse().find(w=>w.date<=todayStr(ref)) || ws[0];
+    const dlt=last.weight-prev.weight; wkChange=`<span class="badge num" style="color:${dlt<=0?'var(--leaf)':'var(--tomato)'}">${md(prev.date)}比 ${dlt>0?'+':''}${f1(dlt)}kg</span>`; }
+  const first=bellyCache[0], last=bellyCache[bellyCache.length-1];
+  let compare='';
+  if(bellyCache.length>=2){
+    const dw=(last.weight&&first.weight)?last.weight-first.weight:null, dwa=(last.waist&&first.waist)?last.waist-first.waist:null;
+    compare=`<div class="compare">
+      <figure onclick="openPhoto('${first.id}')"><img src="${first.thumb}" alt="最初のおなか写真"><figcaption>はじめ ${md(first.date)}${first.weight?`<b>${f1(first.weight)}kg</b>`:''}</figcaption></figure>
+      <figure onclick="openPhoto('${last.id}')"><img src="${last.thumb}" alt="最新のおなか写真"><figcaption>いま ${md(last.date)}${last.weight?`<b>${f1(last.weight)}kg</b>`:''}</figcaption></figure></div>
+      ${(dw!=null||dwa!=null)?`<div class="diffbar">${dw!=null?`体重 <span class="num">${dw>0?'+':''}${f1(dw)}kg</span>　`:''}${dwa!=null?`腹囲 <span class="num">${dwa>0?'+':''}${f1(dwa)}cm</span>`:''}</div>`:''}`;
+  } else compare=`<div class="minihead">${naka(44,'cheer')}<p class="small" style="margin:0">おなか写真を2枚以上記録すると、はじめといまを並べて比べられるよ。</p></div>`;
+  const gallery = !bellyCache.length ? `<p class="muted small" style="margin:0">まだ写真がないよ。</p>`
+    : bodyMode==='grid'
+      ? `<div class="gal">${[...bellyCache].reverse().map(b=>`<button onclick="openPhoto('${b.id}')" aria-label="${b.date}の写真"><img src="${b.thumb}" alt="" loading="lazy"><span>${md(b.date)}${b.weight?` ${f1(b.weight)}kg`:''}</span></button>`).join('')}</div>`
+      : `<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>日付</th><th style="text-align:right">体重</th><th style="text-align:right">腹囲</th><th>メモ</th></tr></thead><tbody>
+         ${[...bellyCache].reverse().map(b=>`<tr onclick="openPhoto('${b.id}')" style="cursor:pointer"><td class="num">${b.date}</td><td class="n">${b.weight?f1(b.weight):'—'}</td><td class="n">${b.waist?f1(b.waist):'—'}</td><td>${esc(b.memo||'')}</td></tr>`).join('')}</tbody></table></div>`;
+  el.innerHTML=`
+    <div class="card"><div class="hrow"><h2>体重の推移</h2>${wkChange}</div>${lineChart(wPts,k?k.target:null,'kg','体重の推移')}
+      <button class="btn ghost sm" style="margin-top:10px" onclick="logMode='weight';go('log')">体重を記録</button></div>
+    <div class="card"><h2>腹囲の推移</h2>${lineChart(waPts,k&&k.waistTarget?k.waistTarget:null,'cm','腹囲の推移')}</div>
+    <div class="card"><h2>おなかの変化</h2>${compare}</div>
+    <div class="card"><div class="hrow"><h2>おなか写真（${bellyCache.length}枚）</h2>
+      <div class="seg" style="margin:0;padding:0"><button class="${bodyMode==='grid'?'on':''}" onclick="bodyMode='grid';renderBody()">写真</button><button class="${bodyMode==='list'?'on':''}" onclick="bodyMode='list';renderBody()">一覧表</button></div></div>
+      ${gallery}
+      <button class="btn yuzu block" onclick="logMode='belly';go('log')">おなかの写真を追加する</button>
+      <div class="privacy">🔒 写真はこのスマホの中だけに保存されています。</div></div>`;
+}
+function openPhoto(id){
+  const b=bellyCache.find(x=>x.id===id); if(!b) return;
+  $('#mbox').innerHTML=`<img src="${b.full}" alt="${b.date}のおなか写真">
+    <dl class="kv" style="margin-top:12px"><dt>日付</dt><dd>${b.date}</dd><dt>体重</dt><dd>${b.weight?f1(b.weight)+' kg':'—'}</dd><dt>腹囲</dt><dd>${b.waist?f1(b.waist)+' cm':'—'}</dd></dl>
+    ${b.memo?`<p class="small">${esc(b.memo)}</p>`:''}
+    <div class="grid2" style="margin-top:12px"><button class="btn ghost" onclick="delBelly('${b.id}')" style="color:var(--tomato)">削除</button><button class="btn primary" onclick="closeModal()">閉じる</button></div>`;
+  $('#modal').classList.add('show');
+}
+function closeModal(){ $('#modal').classList.remove('show'); }
+async function delBelly(id){ if(!confirm('この写真を削除しますか？')) return; await DB.del(id); closeModal(); toast('削除しました'); renderBody(); }
+
+/* ================= 目標 ================= */
+function renderGoal(){
+  const p=S.profile||{sex:'male',age:'',height:'',weight:'',waist:'',activity:1.375,targetWeight:'',pace:.5};
+  const acts=[[1.2,'ほぼ座りっぱなし'],[1.375,'軽い（週1〜3回の運動・よく歩く）'],[1.55,'中程度（週3〜5回の運動）'],[1.725,'活発（ほぼ毎日しっかり運動）']];
+  const paces=[[.25,'ゆるやか（週0.25kg）'],[.5,'標準（週0.5kg）'],[.75,'しっかり（週0.75kg）']];
+  let out=`<div class="card"><h2>今のからだ（AS-IS）</h2>
+    <div class="grid2"><div><label class="f" for="g-sex">性別</label><select class="i" id="g-sex"><option value="male" ${p.sex==='male'?'selected':''}>男性</option><option value="female" ${p.sex==='female'?'selected':''}>女性</option></select></div>
+    <div><label class="f" for="g-age">年齢</label><input class="i" type="number" inputmode="numeric" id="g-age" value="${p.age}"></div>
+    <div><label class="f" for="g-h">身長（cm）</label><input class="i" type="number" inputmode="decimal" step="0.1" id="g-h" value="${p.height}"></div>
+    <div><label class="f" for="g-w">体重（kg）</label><input class="i" type="number" inputmode="decimal" step="0.1" id="g-w" value="${S.profile?currentWeight():''}"></div>
+    <div><label class="f" for="g-waist">腹囲（cm）</label><input class="i" type="number" inputmode="decimal" step="0.1" id="g-waist" value="${S.profile?(currentWaist()||''):''}"></div></div>
+    <label class="f" for="g-act">ふだんの活動量</label><select class="i" id="g-act">${acts.map(([v,l])=>`<option value="${v}" ${+p.activity===v?'selected':''}>${l}</option>`).join('')}</select>
+    <h2 style="margin-top:20px">なりたいからだ（TO-BE）</h2>
+    <div class="grid2"><div><label class="f" for="g-t">理想の体重（kg）</label><input class="i" type="number" inputmode="decimal" step="0.1" id="g-t" value="${p.targetWeight}"></div>
+    <div><label class="f" for="g-pace">ペース</label><select class="i" id="g-pace">${paces.map(([v,l])=>`<option value="${v}" ${+p.pace===v?'selected':''}>${l}</option>`).join('')}</select></div></div>
+    <button class="btn primary block" onclick="saveGoal()">試算して保存する</button></div>`;
+  if(S.profile){
+    const k=calc(S.profile), wk=k.weeks, warn=[];
+    if(k.targetAdjusted) warn.push(`理想の体重はBMI18.5（${f1(k.minW)}kg）を下回るため、${f1(k.target)}kgで試算しているよ。痩せすぎは体に負担がかかるんだ。`);
+    if(k.clamped) warn.push(`選んだペースだと摂取量が下限（${fmt(k.floor)}kcal）を下回るので、下限に合わせて期間を延ばしているよ。`);
+    if(k.tooSlow) warn.push('食事だけでは差がつきにくい体格だよ。運動を記録して消費を増やす作戦でいこう。');
+    out+=`<div class="card"><div class="minihead" style="margin-bottom:10px">${naka(40,'cheer')}<h2 style="margin:0">TO-BE までの試算</h2></div>
+      ${warn.map(m=>`<div class="note warn">${m}</div>`).join('')}
+      <dl class="kv">
+        <dt>体重</dt><dd>${f1(k.w)}<span class="arrow">→</span>${f1(k.target)} kg</dd>
+        <dt>BMI</dt><dd>${f1(k.bmiNow)}<span class="arrow">→</span>${f1(k.bmiTarget)}</dd>
+        ${k.waistNow?`<dt>腹囲（目安）</dt><dd>${f1(k.waistNow)}<span class="arrow">→</span>${f1(k.waistTarget)} cm</dd>`:''}
+        <dt>無理のない期間</dt><dd>${k.lose>0&&wk?`約${Math.ceil(wk)}週（${f1(wk/4.345)}か月）`:'維持'}</dd>
+        ${k.lose>0&&wk?`<dt>達成見込み</dt><dd>${k.end.getFullYear()}/${k.end.getMonth()+1}/${k.end.getDate()}</dd>`:''}
+      </dl>
+      <h2 style="margin-top:18px">1日の目標</h2>
+      <dl class="kv">
+        <dt>基礎代謝</dt><dd>${fmt(k.bmr)} kcal</dd><dt>消費エネルギー（推定）</dt><dd>${fmt(k.tdee)} kcal</dd>
+        <dt>摂取目標</dt><dd>${fmt(k.intake)} kcal</dd><dt>1日の差</dt><dd>−${fmt(k.deficit)} kcal</dd>
+        <dt>たんぱく質</dt><dd>${k.protein} g</dd><dt>脂質</dt><dd>${k.fat} g</dd><dt>炭水化物</dt><dd>${k.carb} g</dd>
+        <dt>食物繊維</dt><dd>${k.fiber} g 以上</dd><dt>塩分</dt><dd>${k.salt} g 未満</dd>
+      </dl>
+      <p class="muted small">基礎代謝はMifflin-St Jeor式、脂肪1kg≒7,200kcal、腹囲は「体重1kg減で約1cm減」の目安で計算しています。持病や服薬がある場合は医師に相談してください。</p></div>`;
+  }
+  $('#view-goal').innerHTML=out;
+}
+function saveGoal(){
+  const v=id=>parseFloat($(id).value);
+  const p={sex:$('#g-sex').value, age:v('#g-age'), height:v('#g-h'), weight:v('#g-w'), waist:v('#g-waist')||null, activity:v('#g-act'), targetWeight:v('#g-t'), pace:v('#g-pace')};
+  if(!p.age||!p.height||!p.weight||!p.targetWeight) return toast('年齢・身長・体重・理想の体重を入力してください');
+  p.startDate=S.profile?.startDate||todayStr(); p.startWeight=S.profile?.startWeight||p.weight;
+  S.profile=p; setWeight(todayStr(), p.weight, p.waist); save(); toast('目標を保存したよ！'); render();
+}
+
+/* ================= ナカジマ（AIコーチ） ================= */
+function contextBlock(){
+  if(!S.profile) return '（プロフィール未設定）';
+  const k=calc(S.profile), d=todayStr(), t=dayTotals(d), b=budgetFor(d,k);
+  const todays=S.meals.filter(m=>m.date===d).map(m=>`${m.type}: ${m.title||m.items.map(i=>i.name).join('、')}（${fmt(mealTotals(m).kcal)}kcal）`).join('\n')||'なし';
+  const exs=S.exercises.filter(e=>e.date===d).map(e=>`${e.name} ${e.kcal}kcal`).join('、')||'なし';
+  const week=[...Array(7)].map((_,i)=>{ const x=new Date(); x.setDate(x.getDate()-7+i); const s=todayStr(x), tt=dayTotals(s);
+    return `${s}: ${fmt(tt.kcal)}kcal P${Math.round(tt.p)} 繊維${f1(tt.fiber)} 塩分${f1(tt.salt)} 運動${fmt(tt.ex)}`; }).join('\n');
+  const ws=sortedWeights().slice(-10).map(w=>`${w.date} ${w.weight}kg${w.waist?` 腹囲${w.waist}`:''}`).join(' / ');
+  return `[プロフィール] ${S.profile.sex==='male'?'男性':'女性'} ${S.profile.age}歳 身長${S.profile.height}cm 現在${f1(k.w)}kg → 目標${f1(k.target)}kg（開始 ${S.profile.startDate} ${S.profile.startWeight}kg）
+[1日の目標] ${k.intake}kcal P${k.protein}g F${k.fat}g C${k.carb}g 繊維${k.fiber}g以上 塩分${k.salt}g未満 / 摂取下限 ${fmt(k.floor)}kcal
+[今日 ${d}] 目安${fmt(b)}kcal 摂取${fmt(t.kcal)}kcal（P${f1(t.p)} F${f1(t.f)} C${f1(t.c)} 繊維${f1(t.fiber)} 塩分${f1(t.salt)}）運動${fmt(t.ex)}kcal 残り${fmt(b-t.kcal)}kcal
+今日の食事:\n${todays}\n今日の運動: ${exs}
+[直近7日]\n${week}
+[体重の推移] ${ws||'記録なし'}
+[連続記録] ${streak()}日`;
+}
+function chatSystem(){
+  return `あなたは「ナカジマ」。カツオ（魚）の姿をした、このユーザー専属のダイエット伴走コーチ（管理栄養士と運動指導の知識を持つ）。
+話し方: 一人称は「ぼく」、ユーザーは「きみ」。明るく前向きで、小さながんばりを具体的に見つけてほめる。でも数字には正直で、ごまかさない。ときどき海や魚にちなんだたとえを少しだけ使う（使いすぎない）。日本語で250字前後、読みやすく。
+進め方: データを根拠に現状を一言でまとめ、「次の一手」を1〜2個、コンビニ商品や定食など具体例で提案する。必要なら1つだけ質問して、ユーザーの状況を深掘りする。
+安全ルール: 1日の摂取を下限未満にする提案、断食・極端な糖質ゼロ・下剤や利尿剤の使用は勧めない。週1kgを超える減量ペースは勧めない。持病・服薬・妊娠中、体調不良、または食べ吐きや食事への強い罪悪感・恐怖の兆候があれば、減量の話より医師や専門家への相談を優先して穏やかに促す。
+${contextBlock()}
+[これまでに分かっているユーザーの傾向メモ]\n${S.notes||'まだありません'}`;
+}
+let chatBusy=false;
+function renderChat(){
+  const fmtMsg=s=>esc(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\n/g,'<br>');
+  const msgs=S.chat.map(m=> m.role==='user'
+    ? `<div class="mrow user"><div class="msg user">${fmtMsg(m.content)}</div></div>`
+    : `<div class="mrow">${naka(34, m.err?'worry':'happy')}<div class="msg assistant${m.err?' err':''}">${fmtMsg(m.content)}</div></div>`).join('')
+    || `<div class="mrow">${naka(34,'cheer')}<div class="msg assistant">やあ、ナカジマだよ！食事のこと、運動のこと、気持ちのこと、なんでも話しかけてね。きみのペースで、ゴールまで一緒に泳ごう。</div></div>`;
+  $('#view-chat').innerHTML=`<div class="card">
+    <div class="coachhead">${naka(56,'cheer')}<div><b>ナカジマ</b><span>きみ専属のダイエット伴走コーチ</span></div></div>
+    <div class="msgs" id="msgs">${msgs}${chatBusy?`<div class="mrow">${naka(34)}<span class="typing">考え中…</span></div>`:''}</div>
+    <div class="chips">${['残りで何を食べる？','今日の振り返りをして','明日の外食で気をつけること','体重が減らない、どうする？','やる気が出ない…'].map(c=>`<button onclick="sendChat('${c}')">${c}</button>`).join('')}</div>
+    <div class="chatin"><textarea class="i" id="chat-in" placeholder="ナカジマに話しかける" aria-label="メッセージ"></textarea><button class="btn primary" onclick="sendChat()" ${chatBusy?'disabled':''}>送信</button></div>
+    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"><button class="btn ghost sm" onclick="reflect(false)">会話と記録から学習する</button>
+    <button class="btn ghost sm" onclick="if(confirm('会話履歴を消しますか？（学習メモは残ります）')){S.chat=[];save();renderChat()}">履歴を消す</button></div></div>`;
+  const box=$('#msgs'); box.scrollTop=box.scrollHeight;
+}
+function askCoach(text){ go('chat'); sendChat(text); }
+async function sendChat(text){
+  if(chatBusy) return;
+  text=(text ?? $('#chat-in').value).trim(); if(!text) return;
+  S.chat.push({role:'user',content:text,ts:Date.now()}); if(S.chat.length>200) S.chat=S.chat.slice(-200);
+  save(); chatBusy=true; if(view==='chat') renderChat();
+  try{
+    const msgs=[];
+    S.chat.filter(m=>!m.err).slice(-20).forEach(m=>{ const l=msgs[msgs.length-1]; if(l&&l.role===m.role) l.content+='\n'+m.content; else msgs.push({role:m.role,content:m.content}); });
+    while(msgs.length && msgs[0].role!=='user') msgs.shift();
+    S.chat.push({role:'assistant', content:await callClaude({system:chatSystem(), messages:msgs, max_tokens:1200}), ts:Date.now()});
+  }catch(e){ S.chat.push({role:'assistant',content:'⚠ '+e.message,ts:Date.now(),err:true}); }
+  chatBusy=false; save(); if(view==='chat') renderChat();
+}
+async function reflect(auto){
+  if(!S.settings.apiKey){ if(!auto) toast('設定でAPIキーを登録してください'); return; }
+  if(!auto) busy(true,'学習メモを更新中…');
+  try{
+    const convo=S.chat.filter(m=>!m.err).slice(-30).map(m=>`${m.role==='user'?'ユーザー':'ナカジマ'}: ${m.content}`).join('\n')||'なし';
+    const out=await callClaude({system:`あなたはダイエットコーチのナカジマ。既存の傾向メモを、直近の記録と会話をもとに更新する。
+観点: 食習慣の傾向（時間帯・よく食べるもの・外食頻度）、つまずきやすい場面、効果があった工夫、好き嫌い、生活リズム、次に試すこと。
+箇条書きで最大600字。メモ本文だけを出力。医学的な診断や性格の決めつけは書かない。`,
+      messages:[{role:'user',content:`[既存メモ]\n${S.notes||'なし'}\n\n${contextBlock()}\n\n[直近の会話]\n${convo}`}], max_tokens:900});
+    S.notes=out.trim(); S.lastReflect=todayStr(); save(); if(!auto) toast('学習メモを更新したよ');
+  }catch(e){ if(!auto) toast(e.message); }
+  finally{ if(!auto) busy(false); }
+}
+function maybeAutoReflect(){ if(S.settings.apiKey && S.lastReflect!==todayStr() && (S.meals.length || S.chat.length>=2)) reflect(true); }
+
+/* ================= 設定 ================= */
+function renderSettings(){
+  $('#view-settings').innerHTML=`<div class="card"><h2>AI（Claude API）</h2>
+    <label class="f" for="s-key">Anthropic APIキー</label><input class="i" type="password" id="s-key" value="${esc(S.settings.apiKey)}" placeholder="sk-ant-..." autocomplete="off">
+    <label class="f" for="s-model">モデル</label><input class="i" id="s-model" value="${esc(S.settings.model)}">
+    <p class="muted small">キーはこの端末のブラウザ内にだけ保存され、コードやGitHubには含まれません。TIPSのネット検索には、Anthropic ConsoleでWeb検索を有効にしておく必要があります。</p>
+    <label class="f" for="s-eat">運動消費のうち食事に上乗せする割合（%）</label><input class="i" type="number" inputmode="numeric" id="s-eat" value="${S.settings.eatBack}">
+    <button class="btn primary block" onclick="saveSettings()">保存する</button></div>
+  <div class="card"><div class="minihead" style="margin-bottom:10px">${naka(34)}<h2 style="margin:0">ナカジマの学習メモ</h2></div>
+    <p class="muted small" style="margin-top:0">会話と記録から毎日1回自動で更新されるよ。違っていたら直接直してね。</p>
+    <textarea class="i" id="s-notes" style="min-height:160px">${esc(S.notes)}</textarea>
+    <button class="btn block" onclick="S.notes=$('#s-notes').value;save();toast('メモを保存しました')">メモを保存する</button></div>
+  <div class="card"><h2>データ</h2>
+    <p class="muted small" style="margin-top:0">記録と写真はこの端末のブラウザに保存されています。機種変更やブラウザのデータ削除に備えて、ときどき書き出してください（おなか写真も含まれます）。</p>
+    <button class="btn block" onclick="exportData()">データを書き出す（JSON）</button>
+    <label class="btn block" style="margin-top:8px">データを読み込む<input type="file" accept="application/json" hidden onchange="importData(this)"></label>
+    <button class="btn ghost block" style="margin-top:8px;color:var(--tomato)" onclick="resetAll()">すべてのデータを削除する</button></div>`;
+}
+function saveSettings(){ S.settings.apiKey=$('#s-key').value.trim(); S.settings.model=$('#s-model').value.trim()||'claude-sonnet-4-6'; S.settings.eatBack=Math.min(100,Math.max(0,+$('#s-eat').value||0)); tipsTried=false; save(); toast('設定を保存しました'); }
+async function exportData(){
+  busy(true,'書き出し中…');
+  try{ const {settings,...rest}=S; const belly=await DB.all();
+    const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify({...rest, settings:{...settings, apiKey:''}, belly})],{type:'application/json'}));
+    a.download=`mydiet-${todayStr()}.json`; a.click();
+  }catch(e){ toast('書き出せませんでした'); } finally{ busy(false); }
+}
+function importData(inp){
+  const f=inp.files[0]; if(!f) return; const r=new FileReader();
+  r.onload=async()=>{ try{ const d=JSON.parse(r.result), key=S.settings.apiKey, b=defaults(), belly=d.belly||[]; delete d.belly;
+      S={...b, ...d, settings:{...b.settings, ...(d.settings||{}), apiKey:key}}; save();
+      for(const x of belly) await DB.put(x);
+      toast('読み込みました'); go('home');
+    }catch(e){ toast('JSONを読み込めませんでした'); } };
+  r.readAsText(f);
+}
+async function resetAll(){
+  if(!confirm('記録・目標・会話・おなか写真をすべて削除します。よろしいですか？')) return;
+  const key=S.settings.apiKey; S=defaults(); S.settings.apiKey=key; save();
+  try{ await DB.clear(); }catch(e){} go('home');
+}
+
+go(S.profile ? 'home' : 'goal');
+</script>
+</body>
+</html>
