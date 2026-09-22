@@ -207,6 +207,54 @@ table.tbl td.n{font-family:var(--num);text-align:right}
 .kv dt{color:var(--sub)} .kv dd{margin:0;font-family:var(--num);font-weight:700;text-align:right}
 .arrow{color:var(--sub);margin:0 4px}
 
+/* ---- analysis dashboard ---- */
+.modeseg{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px;margin-bottom:12px}
+.modeseg button{border:none;background:none;border-radius:999px;padding:9px 0;font-weight:800;font-size:14px;cursor:pointer;color:var(--sub)}
+.modeseg button.on{background:var(--ink);color:var(--card)}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.kpi{background:var(--soft);border:1px solid var(--line);border-radius:16px;padding:12px}
+.kpi .kl{font-size:12px;color:var(--sub);font-weight:700}
+.kpi .kv2 b{font-size:28px;font-weight:800;line-height:1.2}
+.kpi .kv2 small{font-size:11.5px;color:var(--sub);margin-left:3px}
+.kpi .ks{font-size:11.5px;color:var(--sub);display:flex;justify-content:space-between;gap:4px;flex-wrap:wrap}
+.kd{font-family:var(--num);font-weight:700}
+.kd.good,.good-t{color:var(--leaf)} .kd.bad,.bad-t{color:var(--tomato)}
+.donutwrap{display:flex;gap:16px;align-items:center}
+.donut{position:relative;width:132px;height:132px;flex:0 0 auto}
+.donut svg{transform:rotate(-90deg)}
+.donut .dc{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;color:var(--sub)}
+.donut .dc b{font-family:var(--num);font-size:18px;color:var(--ink)}
+.legend{display:grid;gap:10px;flex:1}
+.lg{display:grid;grid-template-columns:12px 1fr auto;column-gap:8px;align-items:center}
+.lg i{width:12px;height:12px;border-radius:4px}
+.lg span{font-size:13px;font-weight:700}
+.lg b{font-family:var(--num);font-size:19px;font-weight:800}
+.lg small{grid-column:2/4;font-size:11px;color:var(--sub);line-height:1.3}
+.ach{margin:12px 0}
+.ach .row{display:flex;justify-content:space-between;font-size:13px;gap:8px}
+.ach .row .v{font-family:var(--num);font-weight:700}
+.ach .track{position:relative;height:10px;background:var(--line);border-radius:6px;margin-top:5px}
+.ach .fill{height:100%;border-radius:6px}
+.ach .mark{position:absolute;top:-4px;bottom:-4px;left:66.67%;width:2px;background:var(--ink);opacity:.45}
+.hlegend{display:flex;gap:14px;font-size:11.5px;color:var(--sub);margin-top:8px;flex-wrap:wrap}
+.hlegend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+.cap{font-size:12px;color:var(--sub);margin:6px 0 0}
+
+/* ---- health ---- */
+.hc{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.hc1{background:var(--soft);border:1px solid var(--line);border-radius:16px;padding:12px}
+.hc1 .hl{font-size:12px;color:var(--sub);font-weight:700}
+.hc1 b{font-family:var(--num);font-size:28px;font-weight:800;line-height:1.2}
+.hc1 small{font-size:11.5px;color:var(--sub);margin-left:3px}
+.hc1 .tbar{height:6px;border-radius:4px;background:var(--line);margin:6px 0 4px;overflow:hidden}
+.hc1 .tbar i{display:block;height:100%;border-radius:4px}
+.hc1 .hs2{font-size:11.5px;color:var(--sub)}
+.guide{margin-top:12px;font-size:13.5px}
+.guide summary{cursor:pointer;font-weight:700}
+.guide ol{padding-left:20px;margin:8px 0}
+.guide li{margin-bottom:6px}
+.guide code{background:var(--soft);border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:12.5px;word-break:break-all}
+
 /* ---- nav ---- */
 nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);z-index:20}
 nav.tabs .in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
@@ -264,8 +312,8 @@ const md = s => s.slice(5).replace('-','/');
 const KEY = 'mydiet_v1';
 
 function defaults(){
-  return { profile:null, meals:[], exercises:[], weights:[], chat:[], notes:'', lastReflect:'', tips:null,
-           settings:{ apiKey:'', model:'claude-sonnet-4-6', eatBack:50 } };
+  return { profile:null, meals:[], exercises:[], weights:[], chat:[], notes:'', lastReflect:'', tips:null, health:{},
+           settings:{ apiKey:'', model:'claude-sonnet-4-6', eatBack:50, stepGoal:8000 } };
 }
 function load(){
   try{ const raw = localStorage.getItem(KEY);
@@ -343,7 +391,10 @@ function calc(p){
 function dayTotals(d){
   const t={kcal:0,p:0,f:0,c:0,fiber:0,salt:0};
   S.meals.filter(m=>m.date===d).forEach(m=>m.items.forEach(i=>{ for(const k in t) t[k]+= +i[k]||0; }));
-  t.ex = S.exercises.filter(e=>e.date===d).reduce((a,e)=>a+(+e.kcal||0),0);
+  t.exManual = S.exercises.filter(e=>e.date===d).reduce((a,e)=>a+(+e.kcal||0),0);
+  const h = (S.health||{})[d];
+  t.exHealth = h&&h.active ? +h.active : 0; t.steps = h&&h.steps ? +h.steps : 0;
+  t.ex = t.exManual + t.exHealth;
   return t;
 }
 function mealTotals(m){ const t={kcal:0,p:0,f:0,c:0,fiber:0,salt:0}; m.items.forEach(i=>{ for(const k in t) t[k]+= +i[k]||0; }); return t; }
@@ -378,11 +429,12 @@ function render(){
 /* ================= ホーム ================= */
 function nakaMessage(k,t,budget,st){
   const R=budget-Math.round(t.kcal), h=new Date().getHours(), pg=k.protein-t.p;
-  let pre = st>=3 ? `<b>${st}日連続</b>で記録中！すごいね。` : '';
-  if(t.kcal===0) return {mood:'cheer', m: pre + (h<11 ? 'おはよう！今日も一緒に泳ごう。まずは朝ごはんを記録してみてね。' : 'まだ今日の記録がないよ。食べたものを撮るだけでいいから、気軽に送ってね。')};
-  if(R<0) return {mood:'worry', m:`今日は目安より<b>${fmt(-R)}kcal</b>多めだね。でも1日で結果は決まらないよ。明日の朝ごはんで少し整えよう。`};
-  if(R<=300) return {mood:'happy', m: pre + `いいペース！残り<b>${fmt(R)}kcal</b>。${pg>10?`たんぱく質をあと<b>${Math.round(pg)}g</b>とれると満点だよ。`:'この調子で軽めにいこう。'}`};
-  return {mood:'happy', m: pre + `あと<b>${fmt(R)}kcal</b>食べられるよ。${pg>10?`たんぱく質があと<b>${Math.round(pg)}g</b>ほしいな。`:'バランスもいい感じ！'}`};
+  let pre = st>=3 ? `<b>${st}日連続</b>で記録しちゅう！まっことすごいぜよ。` : '';
+  if(t.steps>=(S.settings.stepGoal||8000)) pre += `今日は<b>${fmt(t.steps)}歩</b>、歩数も目標達成ぜよ！`;
+  if(t.kcal===0) return {mood:'cheer', m: pre + (h<11 ? 'おはよう！今日も一緒に泳ごうぜよ。まずは朝ごはんを記録してみいや。' : 'まだ今日の記録がないき。食べたもんを撮るだけでえいき、気軽に送ってや。')};
+  if(R<0) return {mood:'worry', m:`今日は目安より<b>${fmt(-R)}kcal</b>多めやね。けんど1日で結果は決まらんき、明日の朝ごはんでちっくと整えようぜよ。`};
+  if(R<=300) return {mood:'happy', m: pre + `えいペースぜよ！残り<b>${fmt(R)}kcal</b>。${pg>10?`たんぱく質をあと<b>${Math.round(pg)}g</b>とれたら満点やき。`:'この調子で軽めにいこうぜよ。'}`};
+  return {mood:'happy', m: pre + `あと<b>${fmt(R)}kcal</b>食べられるき。${pg>10?`たんぱく質があと<b>${Math.round(pg)}g</b>ほしいがよ。`:'バランスもこじゃんとえい感じぜよ！'}`};
 }
 function heroRing(eaten,budget){
   const r=70, C=2*Math.PI*r, pct=Math.min(eaten/Math.max(budget,1),1), over=eaten>budget;
@@ -409,28 +461,51 @@ const FOODS=[
 ];
 function recommend(k,t,budget){
   const R=budget-t.kcal, pg=k.protein-t.p, fg=k.fiber-t.fiber, notes=[];
-  if(R<=0) notes.push({c:'warn',m:'今日の目安に到達。この後はお茶や水、または温かいスープ（〜40kcal）くらいにしておこう。'});
-  if(t.salt>k.salt) notes.push({c:'warn',m:`塩分が目標（${k.salt}g未満）を超えたよ。水分と、野菜・果物を意識してね。`});
+  if(R<=0) notes.push({c:'warn',m:'今日の目安に到達したぜよ。この後はお茶や水、温かいスープ（〜40kcal）くらいにしちょこう。'});
+  if(t.salt>k.salt) notes.push({c:'warn',m:`塩分が目標（${k.salt}g未満）を超えちゅうき、水分と野菜・果物を意識してや。`});
   const picks=FOODS.filter(x=>x.k<=Math.max(R,0)).map(x=>({...x,s:(pg>0?Math.min(x.p,pg)*4:0)+(fg>0?Math.min(x.fi,fg)*20:0)+1-x.k/1000})).sort((a,b)=>b.s-a.s).slice(0,3);
   return {notes,picks};
 }
 const STATIC_TIPS=[
-  {title:'野菜から先に食べる', body:'食事の最初に野菜や汁物を食べると、血糖値の上がり方がゆるやかになりやすいよ。'},
-  {title:'汁物は半分残す', body:'ラーメンや味噌汁のスープを半分残すだけで、塩分をぐっと減らせるんだ。'},
-  {title:'たんぱく質は手のひら1枚分', body:'肉・魚・卵・大豆製品を毎食手のひら1枚分とると、満腹感も筋肉もキープしやすいよ。'},
-  {title:'遅い夕食は分けて食べる', body:'帰りが遅い日は夕方におにぎりを食べて、夜はおかず中心にすると体の負担が軽くなるよ。'},
-  {title:'飲み物のカロリーを見直す', body:'甘いカフェラテやジュースは意外と高カロリー。無糖のお茶や炭酸水に替えるのも立派な作戦だよ。'},
-  {title:'20分かけてゆっくり食べる', body:'満腹のサインが脳に届くまで時間がかかるから、よく噛んでゆっくり食べるのが近道だよ。'},
-  {title:'外食は定食スタイル', body:'丼や麺単品より、主食・主菜・副菜がそろう定食のほうが栄養バランスが整いやすいよ。'},
-  {title:'コンビニは「足し算」', body:'おにぎりにサラダチキンやゆで卵を足すと、たんぱく質不足を手軽にカバーできるよ。'}
+  {title:'野菜から先に食べる', body:'食事の最初に野菜や汁物を食べたら、血糖値の上がり方がゆるやかになりやすいがよ。'},
+  {title:'汁物は半分残す', body:'ラーメンやうどんのスープを半分残すだけで、塩分をぐっと減らせるき。'},
+  {title:'たんぱく質は手のひら1枚分', body:'肉・魚・卵・大豆製品を毎食手のひら1枚分とったら、満腹感も筋肉もキープしやすいぜよ。'},
+  {title:'遅い夕食は分けて食べる', body:'帰りが遅い日は夕方におにぎりを食べちょいて、夜はおかず中心にしたら体の負担が軽うなるき。'},
+  {title:'飲み物のカロリーを見直す', body:'甘いカフェラテやジュースは意外と高カロリーながよ。無糖のお茶や炭酸水に替えるのも立派な作戦ぜよ。'},
+  {title:'20分かけてゆっくり食べる', body:'満腹のサインが脳に届くまで時間がかかるき、よう噛んでゆっくり食べるがが近道ぜよ。'},
+  {title:'外食は定食スタイル', body:'丼や麺の単品より、主食・主菜・副菜がそろう定食のほうが栄養バランスが整いやすいき。'},
+  {title:'コンビニは「足し算」', body:'おにぎりにサラダチキンやゆで卵を足したら、たんぱく質不足を手軽にカバーできるぜよ。'},
+  {title:'寝る2〜3時間前に食べ終える', body:'寝る直前に食べると消化が追いつかんき、夕食は早めにすませるがが理想ぜよ。'},
+  {title:'まずは水を一杯', body:'のどの渇きを空腹と勘違いすることもあるき、おなかがすいたらまず水を一杯飲んでみいや。'},
+  {title:'飲み会はおつまみで勝負', body:'枝豆・刺身・冷奴みたいな高たんぱくのおつまみを選んだら、飲み会でも大崩れせんぜよ。'},
+  {title:'間食は200kcalまで', body:'おやつは1日200kcalくらいを目安に、ナッツやヨーグルトにしたら満足感もあるき。'},
+  {title:'カツオはたんぱく質の優等生', body:'カツオのたたきは高たんぱくで低脂質ながよ。ぼくが言うがもなんやけど、まっことおすすめぜよ。'},
+  {title:'朝ごはんを抜かない', body:'朝を抜くと昼や夜にドカ食いしやすいき。ヨーグルトやバナナだけでも食べちょくがが得策ぜよ。'},
+  {title:'主食は「減らす」より「選ぶ」', body:'白米をもち麦ごはんや玄米に替えたら、食物繊維が増えて腹持ちもようなるき。'},
+  {title:'揚げ物は衣をちっくと外す', body:'唐揚げやカツの衣を少し外すだけで、脂質とカロリーをけっこう減らせるがよ。'},
+  {title:'ドレッシングは「かける」から「つける」へ', body:'サラダにたっぷりかけると油と塩分がかさむき、小皿に出してつけて食べてみいや。'},
+  {title:'きのこと海藻をこじゃんと使う', body:'きのこや海藻は低カロリーで食物繊維たっぷりながよ。汁物や炒め物にどんどん入れたらえいぜよ。'},
+  {title:'麺類には具を足す', body:'麺だけやと炭水化物にかたよるき、卵や野菜、肉をのせてたんぱく質と繊維をプラスしいや。'},
+  {title:'器を小さめにする', body:'小さめの茶碗や皿に盛ると、同じ量でも満足感が出やすいき。量のコントロールにえいぜよ。'},
+  {title:'ながら食べをやめる', body:'スマホやテレビを見ながらやと食べた量に気づきにくいき、食事中は食事に集中してみいや。'},
+  {title:'果物は間食の味方', body:'甘いもんが欲しいときは、お菓子よりキウイやみかんなどの果物を選んだら、ビタミンと繊維もとれるき。'},
+  {title:'お酒は量と頻度を決めておく', body:'お酒そのもののカロリーに加えて食欲も増えるき、「平日は飲まん」みたいに自分ルールを作るがが効くぜよ。'},
+  {title:'しめのラーメンは翌朝に回す', body:'飲んだあとの「しめ」が欲しくなったら、水を飲んで寝て、翌朝に温かい汁物にしいや。'},
+  {title:'調理法は「焼く・蒸す・煮る」', body:'同じ食材でも、揚げるより焼く・蒸す・煮るほうが油が少のうてすむがよ。'},
+  {title:'減塩は香りと酸味で', body:'レモン、酢、しょうが、ゆず、大葉なんかを使うたら、塩を減らしても物足りのうならんき。'},
+  {title:'買い物はおなかがすいてない時に', body:'空腹で買い物に行くと、ついお菓子や惣菜を買いすぎるき。食後に行くががコツぜよ。'},
+  {title:'たんぱく質は朝にもとる', body:'朝ごはんに卵や納豆、ヨーグルトを足したら、1日のたんぱく質目標に届きやすうなるき。'},
+  {title:'睡眠もダイエットの一部', body:'寝不足が続くと食欲が増えやすいき、しっかり寝るがも立派なダイエット作戦ながよ。'},
+  {title:'完璧を目指さん', body:'1回食べすぎても、次の食事で整えたら大丈夫ぜよ。続けることがいっちゃん大事やき。'}
 ];
 function renderHome(){
   const el=$('#view-home');
   if(!S.profile){
-    el.innerHTML=`<div class="hero"><div class="hero-top">${naka(84,'cheer')}<div class="bubble">はじめまして、<b>ナカジマ</b>です！まずは今のからだと、なりたいからだを教えてね。ゴールまでしっかり伴走するよ。</div></div>
+    el.innerHTML=`<div class="hero"><div class="hero-top">${naka(84,'cheer')}<div class="bubble">はじめまして、<b>ナカジマ</b>ぜよ！まずは今のからだと、なりたいからだを教えてや。ゴールまでしっかり伴走するき、まかせちょき。</div></div>
       <button class="btn yuzu block" onclick="go('goal')">目標を設定する</button></div>`;
     return;
   }
+  if(homeMode==='ana'){ el.innerHTML=homeToggle()+analysisHTML(); return; }
   const k=calc(S.profile), d=todayStr(), t=dayTotals(d), budget=budgetFor(d,k), R=budget-Math.round(t.kcal);
   const st=streak(), msg=nakaMessage(k,t,budget,st), wk=weekOk(k), rc=recommend(k,t,budget);
   const start=S.profile.startWeight||k.w, total=start-k.target, done=start-k.w;
@@ -447,9 +522,11 @@ function renderHome(){
       <button class="x" onclick="delMeal('${m.id}')">この記録を削除</button></div></details>`; }).join('');
   list += exs.map(e=>`<details class="meal"><summary><span class="mtype">運動</span><span class="mtitle">${esc(e.name)}${e.minutes?`（${e.minutes}分）`:''}</span><span class="mk">−${fmt(e.kcal)}</span></summary>
       <div class="mbody"><button class="x" onclick="delEx('${e.id}')">この記録を削除</button></div></details>`).join('');
+  const hh=(S.health||{})[d];
+  if(hh&&(hh.active||hh.steps)) list+=`<details class="meal"><summary><span class="mtype">ヘルスケア</span><span class="mtitle">アクティブエネルギー${hh.steps?`・${fmt(hh.steps)}歩`:''}</span><span class="mk">−${fmt(hh.active||0)}</span></summary><div class="mbody"><button class="x" onclick="delHealth('${d}')">この日の取り込みを削除</button></div></details>`;
   if(!list) list=`<p class="muted small" style="margin:0">まだ記録がないよ。下の黄色い「＋」から、レシートや写真で記録できるよ。</p>`;
 
-  el.innerHTML=`
+  el.innerHTML=homeToggle()+`
   <div class="hero">
     <div class="hero-top">${naka(72,msg.mood)}<div class="bubble">${msg.m}</div></div>
     <div class="hero-main">
@@ -463,6 +540,8 @@ function renderHome(){
     </div>
     ${R>0?`<div class="rice">🍚 残りはごはん（茶碗1杯150g）なら約 <b class="num">${f1(R/234)}</b> 杯分</div>`:''}
   </div>
+
+  ${healthCard(t)}
 
   <div class="card">
     <div class="hrow"><h2>ゴールまでの航路</h2><span class="badge num">${Math.round(prog*100)}%</span></div>
@@ -501,7 +580,6 @@ function renderHome(){
 
   <div class="card"><h2>直近7日の摂取カロリー</h2>${weekChart(k)}</div>`;
   renderTipsCard();
-  if(S.settings.apiKey && (!S.tips || S.tips.date!==todayStr()) && !tipsLoading && !tipsTried) loadTips(false);
 }
 function weekChart(k){
   const days=[...Array(7)].map((_,i)=>{const d=new Date(); d.setDate(d.getDate()-6+i); return d;});
@@ -518,46 +596,204 @@ const MEAL_TYPES=['朝食','昼食','間食','夕食'];
 function delMeal(id){ if(!confirm('この食事記録を削除しますか？')) return; S.meals=S.meals.filter(m=>m.id!==id); save(); render(); }
 function delEx(id){ if(!confirm('この運動記録を削除しますか？')) return; S.exercises=S.exercises.filter(e=>e.id!==id); save(); render(); }
 
-/* ================= TIPS（Web検索） ================= */
-let tipsLoading=false, tipsTried=false;
+/* ================= 分析ダッシュボード ================= */
+let homeMode='today', anaDays=30, lastAnaSummary='';
+function homeToggle(){
+  return `<div class="modeseg" role="tablist"><button class="${homeMode==='today'?'on':''}" onclick="homeMode='today';renderHome()">今日</button><button class="${homeMode==='ana'?'on':''}" onclick="homeMode='ana';renderHome()">分析ダッシュボード</button></div>`;
+}
+function periodDays(n, offset=0){ return [...Array(n)].map((_,i)=>{ const d=new Date(); d.setDate(d.getDate()-offset-(n-1)+i); return todayStr(d); }); }
+function periodStats(days,k){
+  const set=new Set(days), sg=S.settings.stepGoal||8000; let logged=0, ok=0, kcal=0, p=0, f=0, c=0, fi=0, salt=0, ex=0, stSum=0, stDays=0, stOk=0;
+  days.forEach(d=>{ const t=dayTotals(d); ex+=t.ex; if(t.steps>0){ stSum+=t.steps; stDays++; if(t.steps>=sg) stOk++; } if(t.kcal>0){ logged++; kcal+=t.kcal; p+=t.p; f+=t.f; c+=t.c; fi+=t.fiber; salt+=t.salt; if(t.kcal<=budgetFor(d,k)) ok++; } });
+  const byType={}; MEAL_TYPES.forEach(x=>byType[x]=0);
+  S.meals.filter(m=>set.has(m.date)).forEach(m=>{ byType[m.type]=(byType[m.type]||0)+mealTotals(m).kcal; });
+  const L=Math.max(logged,1); MEAL_TYPES.forEach(x=>byType[x]/=L);
+  const ws=sortedWeights().filter(w=>set.has(w.date)), wa=ws.filter(w=>w.waist);
+  return { n:days.length, logged, ok, okRate: logged?ok/logged:0, recRate: logged/days.length,
+    avgKcal:kcal/L, avgP:p/L, avgF:f/L, avgC:c/L, avgFi:fi/L, avgSalt:salt/L, avgEx:ex/days.length, byType, ws, avgSteps: stDays?stSum/stDays:0, stDays, stOk,
+    wDelta: ws.length>=2 ? ws[ws.length-1].weight-ws[0].weight : null,
+    waDelta: wa.length>=2 ? wa[wa.length-1].waist-wa[0].waist : null };
+}
+function kpi(label, unit, value, delta, dir, sub, dfmt=f1, vcls=''){
+  let d='';
+  if(delta!=null && isFinite(delta) && Math.abs(delta)>=0.05){
+    const good = dir==='neutral' ? null : (dir==='up' ? delta>0 : delta<0);
+    d=`<span class="kd ${good===null?'':good?'good':'bad'}">${delta>0?'▲':'▼'} ${dfmt(Math.abs(delta))}</span>`;
+  }
+  return `<div class="kpi"><div class="kl">${label}</div><div class="kv2"><b class="num ${vcls}">${value}</b><small>${unit}</small></div><div class="ks"><span>${sub||''}</span>${d}</div></div>`;
+}
+function barChart({days, vals, color, line, lineLabel, label}){
+  const W=340,H=170,pl=6,pr=6,pt=18,pb=20,n=vals.length;
+  const mx=Math.max((line||0)*1.25, ...vals, 1), slot=(W-pl-pr)/n, bw=Math.max(Math.min(slot*.62,26),2);
+  const y=v=>H-pb-(H-pb-pt)*v/mx, step=Math.ceil(n/6);
+  let s=`<svg viewBox="0 0 ${W} ${H}" class="chart" role="img" aria-label="${label}">`;
+  vals.forEach((v,i)=>{ const cx=pl+slot*(i+.5);
+    s+=`<rect x="${(cx-bw/2).toFixed(1)}" y="${y(v).toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(H-pb-y(v),0).toFixed(1)}" rx="${Math.min(bw/2,5).toFixed(1)}" fill="${color(v,i)}"/>`;
+    if((n-1-i)%step===0) s+=`<text x="${cx.toFixed(1)}" y="${H-5}" text-anchor="middle">${md(days[i])}</text>`; });
+  if(line!=null){ const ty=y(line); s+=`<line x1="${pl}" x2="${W-pr}" y1="${ty}" y2="${ty}" stroke="var(--yuzu)" stroke-width="2.5" stroke-dasharray="6 4"/><text x="${W-pr}" y="${ty-5}" text-anchor="end">${lineLabel}</text>`; }
+  return s+'</svg>';
+}
+function pfcDonut(cur,k){
+  const pk=cur.avgP*4, fk=cur.avgF*9, ck=cur.avgC*4, tot=pk+fk+ck;
+  if(!cur.logged||tot<=0) return `<p class="muted small" style="margin:0">記録がたまったら表示されるき。</p>`;
+  const parts=[['たんぱく質',pk/tot,'var(--p)',k.protein*4/k.intake],['脂質',fk/tot,'var(--f)',k.fat*9/k.intake],['炭水化物',ck/tot,'var(--c)',k.carb*4/k.intake]];
+  const r=50, C=2*Math.PI*r; let off=0, arcs='';
+  parts.forEach(([,v,col])=>{ arcs+=`<circle cx="66" cy="66" r="${r}" fill="none" stroke="${col}" stroke-width="22" stroke-dasharray="${(C*v).toFixed(1)} ${C.toFixed(1)}" stroke-dashoffset="${(-C*off).toFixed(1)}"/>`; off+=v; });
+  return `<div class="donutwrap"><div class="donut"><svg width="132" height="132" viewBox="0 0 132 132" role="img" aria-label="PFCバランス">${arcs}</svg><div class="dc">平均<b>${fmt(cur.avgKcal)}</b>kcal/日</div></div>
+    <div class="legend">${parts.map(([nm,v,col,t])=>{ const diff=Math.round((v-t)*100);
+      return `<div class="lg"><i style="background:${col}"></i><span>${nm}</span><b>${Math.round(v*100)}%</b><small>目標 ${Math.round(t*100)}%（${diff>0?'+':''}${diff}pt）</small></div>`; }).join('')}</div></div>`;
+}
+function achBars(cur,k){
+  if(!cur.logged) return `<p class="muted small" style="margin:0">記録がたまったら表示されるき。</p>`;
+  const rows=[['たんぱく質',cur.avgP,k.protein,'var(--p)','min'],['脂質',cur.avgF,k.fat,'var(--f)','max'],['炭水化物',cur.avgC,k.carb,'var(--c)','max'],['食物繊維',cur.avgFi,k.fiber,'var(--fi)','min'],['塩分',cur.avgSalt,k.salt,'var(--salt)','limit']];
+  return rows.map(([nm,v,g,col,kind])=>{ const rate=v/Math.max(g,.01);
+    const bad = kind==='min' ? rate<0.8 : kind==='limit' ? rate>1 : rate>1.15;
+    const good = kind==='min' ? rate>=1 : kind==='limit' ? rate<=0.9 : (rate>=0.85&&rate<=1.05);
+    return `<div class="ach"><div class="row"><span>${nm}</span><span class="v ${bad?'bad-t':good?'good-t':''}">${Math.round(rate*100)}%<span class="muted" style="font-weight:400"> ／ 平均${g<30?f1(v):Math.round(v)}g・目標${kind==='limit'?'<':''}${g}g</span></span></div>
+      <div class="track"><div class="fill" style="width:${Math.min(rate/1.5,1)*100}%;background:${bad?'var(--tomato)':col}"></div><div class="mark"></div></div></div>`; }).join('')
+    + `<p class="cap">縦線が目標（100%）。塩分は目標より少ないほど良い指標です。</p>`;
+}
+function weightPlanChart(days,k){
+  const set=new Set(days), ws=sortedWeights().filter(w=>set.has(w.date));
+  if(!ws.length) return {svg:`<p class="muted small" style="margin:0">この期間は体重の記録がないき。「からだ」タブか記録から入れてみいや。</p>`, note:''};
+  const n=days.length, W=340,H=170,pl=34,pr=8,pt=16,pb=20, idx=d=>days.indexOf(d), slope=k.weeklyLoss/7;
+  const w0=ws[0], i0=idx(w0.date), planAt=i=>Math.max(w0.weight-slope*(i-i0), Math.min(k.target,w0.weight));
+  const planEnd=planAt(n-1), vals=ws.map(w=>w.weight).concat([planEnd]);
+  if(Math.min(...vals)-k.target<3) vals.push(k.target);
+  const mn=Math.min(...vals)-.5, mx=Math.max(...vals)+.5;
+  const x=i=>pl+(W-pl-pr)*i/Math.max(n-1,1), y=v=>pt+(H-pt-pb)*(mx-v)/(mx-mn);
+  const line=ws.map(w=>`${x(idx(w.date)).toFixed(1)},${y(w.weight).toFixed(1)}`).join(' ');
+  const showT=vals.includes(k.target);
+  const svg=`<svg viewBox="0 0 ${W} ${H}" class="chart" role="img" aria-label="体重の実績と計画">
+    ${showT?`<line x1="${pl}" x2="${W-pr}" y1="${y(k.target)}" y2="${y(k.target)}" stroke="var(--yuzu)" stroke-width="2" stroke-dasharray="6 4"/><text x="${W-pr}" y="${y(k.target)-5}" text-anchor="end">目標 ${f1(k.target)}kg</text>`:''}
+    <line x1="${x(i0)}" y1="${y(w0.weight)}" x2="${x(n-1)}" y2="${y(planEnd)}" stroke="var(--sub)" stroke-width="2" stroke-dasharray="3 4"/>
+    <polyline points="${line}" fill="none" stroke="var(--sea)" stroke-width="2.6" stroke-linejoin="round"/>
+    ${ws.map((w,i)=>`<circle cx="${x(idx(w.date))}" cy="${y(w.weight)}" r="${i===ws.length-1?4.5:2.6}" fill="var(--sea)"/>`).join('')}
+    <text x="${pl-4}" y="${y(mx-.5)+3}" text-anchor="end">${f1(mx-.5)}</text><text x="${pl-4}" y="${y(mn+.5)+3}" text-anchor="end">${f1(mn+.5)}</text>
+    <text x="${pl}" y="${H-5}">${md(days[0])}</text><text x="${W-pr}" y="${H-5}" text-anchor="end">${md(days[n-1])}</text></svg>`;
+  const last=ws[ws.length-1], diff=last.weight-planAt(idx(last.date));
+  let note='';
+  if(ws.length>=2) note = diff<=-0.1 ? `<span class="good-t">計画より ${f1(-diff)}kg 先行しちゅうぜよ！</span>` : diff>=0.1 ? `計画より ${f1(diff)}kg ゆっくりめ。あせらんでえいき、続けたら追いつくぜよ。` : `ほぼ計画どおりのペースぜよ。`;
+  return {svg, note};
+}
+function heatmap(k){
+  const today=new Date(), weeks=12, cs=18, gap=4, left=22, top=4;
+  const start=new Date(); start.setDate(today.getDate()-((today.getDay()+6)%7)-7*(weeks-1));
+  const tStr=todayStr(today), W=left+weeks*(cs+gap), H=top+7*(cs+gap);
+  let s=`<svg viewBox="0 0 ${W} ${H}" class="chart heat" style="max-width:${W*1.25}px" role="img" aria-label="記録カレンダー">`;
+  ['月','水','金','日'].forEach((l,j)=>{ const row=[0,2,4,6][j]; s+=`<text x="0" y="${top+row*(cs+gap)+13}">${l}</text>`; });
+  for(let w=0; w<weeks; w++) for(let r=0; r<7; r++){
+    const d=new Date(start); d.setDate(start.getDate()+w*7+r); const ds=todayStr(d); if(ds>tStr) continue;
+    const t=dayTotals(ds); const col = t.kcal===0 ? 'var(--line)' : t.kcal<=budgetFor(ds,k) ? 'var(--leaf)' : 'var(--tomato)';
+    s+=`<rect x="${left+w*(cs+gap)}" y="${top+r*(cs+gap)}" width="${cs}" height="${cs}" rx="4" fill="${col}" ${ds===tStr?'stroke="var(--ink)" stroke-width="2"':''}><title>${ds}${t.kcal?` ${fmt(t.kcal)}kcal`:' 記録なし'}</title></rect>`;
+  }
+  return s+`</svg><div class="hlegend"><span><i style="background:var(--leaf)"></i>目安内</span><span><i style="background:var(--tomato)"></i>目安オーバー</span><span><i style="background:var(--line)"></i>記録なし</span></div>`;
+}
+function anaComment(cur,k){
+  if(!cur.logged) return {mood:'cheer', m:'この期間はまだ記録がないき。まずは1日1回、食べたもんを記録してみいや。'};
+  const pc=Math.round(cur.okRate*100); let m='', mood='happy';
+  if(cur.okRate>=0.7){ m=`目安内の日が<b>${pc}%</b>、まっことえい調子ぜよ！`; mood='cheer'; }
+  else if(cur.okRate>=0.4) m=`目安内の日は<b>${pc}%</b>。あとちっくとで波に乗れるき。`;
+  else { m=`目安を超える日が多めやね（目安内<b>${pc}%</b>）。まずは間食から整えてみいや。`; mood='worry'; }
+  if(cur.wDelta!=null && cur.wDelta<=-0.1) m+=`体重は<b>${f1(cur.wDelta)}kg</b>、ちゃんと結果が出ちゅうぜよ。`;
+  if(cur.avgSalt>k.salt) m+='塩分がちっくと多めやき、汁物を半分残す作戦でいこう。';
+  else if(cur.avgP<k.protein*0.8) m+='たんぱく質が不足ぎみやき、毎食手のひら1枚分を意識しいや。';
+  else if(cur.avgFi<k.fiber*0.7) m+='食物繊維が足りんき、きのこや海藻を足してみいや。';
+  return {mood, m};
+}
+function analysisHTML(){
+  const k=calc(S.profile), n=anaDays, days=periodDays(n), cur=periodStats(days,k), prev=periodStats(periodDays(n,n),k);
+  const hp=prev.logged>0, cl=cur.logged>0, pct=x=>Math.round(x*100), sgn=v=>(v>0?'+':v<0?'−':'')+f1(Math.abs(v));
+  const pr=cur.avgP/k.protein, pp=prev.avgP/k.protein, cm=anaComment(cur,k);
+  const kpis=[
+    kpi('平均摂取カロリー','kcal/日', cl?fmt(cur.avgKcal):'—', hp&&cl?cur.avgKcal-prev.avgKcal:null,'neutral',`目標 ${fmt(k.intake)}`, v=>fmt(v), cl&&cur.avgKcal>k.intake*1.05?'bad-t':''),
+    kpi('目安内の日','%', cl?pct(cur.okRate):'—', hp&&cl?(cur.okRate-prev.okRate)*100:null,'up',`${cur.ok}/${cur.logged}日`, v=>Math.round(v)),
+    kpi('記録率','%', pct(cur.recRate), hp?(cur.recRate-prev.recRate)*100:null,'up',`${cur.logged}/${n}日`, v=>Math.round(v)),
+    kpi('体重の変化','kg', cur.wDelta!=null?sgn(cur.wDelta):'—', null,'down', cur.ws.length?`${f1(cur.ws[0].weight)}→${f1(cur.ws[cur.ws.length-1].weight)}`:'記録なし', f1, cur.wDelta!=null?(cur.wDelta<0?'good-t':cur.wDelta>0?'bad-t':''):''),
+    kpi('たんぱく質達成率','%', cl?pct(pr):'—', hp&&cl?(pr-pp)*100:null,'up',`平均 ${Math.round(cur.avgP)}g`, v=>Math.round(v)),
+    kpi('平均塩分','g/日', cl?f1(cur.avgSalt):'—', hp&&cl?cur.avgSalt-prev.avgSalt:null,'down',`目標 ${k.salt}g未満`, f1, cl&&cur.avgSalt>k.salt?'bad-t':''),
+    kpi('平均運動消費','kcal/日', fmt(cur.avgEx), hp?cur.avgEx-prev.avgEx:null,'up','ヘルスケア＋手入力', v=>fmt(v)),
+    kpi('平均歩数','歩/日', cur.stDays?fmt(cur.avgSteps):'—', prev.stDays&&cur.stDays?cur.avgSteps-prev.avgSteps:null,'up',`目標 ${fmt(S.settings.stepGoal||8000)}歩`, v=>fmt(v)),
+    kpi('歩数目標の達成','日', cur.stDays?cur.stOk:'—', prev.stDays&&cur.stDays?cur.stOk-prev.stOk:null,'up',`取り込み ${cur.stDays}/${n}日`, v=>Math.round(v)),
+    kpi('腹囲の変化','cm', cur.waDelta!=null?sgn(cur.waDelta):'—', null,'down','', f1, cur.waDelta!=null?(cur.waDelta<0?'good-t':cur.waDelta>0?'bad-t':''):'')
+  ].join('');
+  const kv=days.map(d=>dayTotals(d).kcal), ev=days.map(d=>dayTotals(d).ex);
+  const wp=weightPlanChart(days,k);
+  const tmax=Math.max(...MEAL_TYPES.map(t=>cur.byType[t]),1);
+  lastAnaSummary=`直近${n}日の記録を分析して、良かった点・改善点・次の1週間の作戦を教えて。まとめ：平均摂取${fmt(cur.avgKcal)}kcal/日（目標${fmt(k.intake)}）、目安内${pct(cur.okRate)}%、記録率${pct(cur.recRate)}%、体重変化${cur.wDelta!=null?f1(cur.wDelta)+'kg':'記録なし'}、平均たんぱく質${Math.round(cur.avgP)}g（目標${k.protein}g）、平均脂質${Math.round(cur.avgF)}g、平均炭水化物${Math.round(cur.avgC)}g、食物繊維${f1(cur.avgFi)}g、塩分${f1(cur.avgSalt)}g、運動${fmt(cur.avgEx)}kcal/日、平均歩数${cur.stDays?fmt(cur.avgSteps)+'歩':'記録なし'}、食事区分別の平均（${MEAL_TYPES.map(t=>t+Math.round(cur.byType[t])+'kcal').join('・')}）。`;
+  return `
+  <div class="seg">${[7,30,90].map(v=>`<button class="${anaDays===v?'on':''}" onclick="anaDays=${v};renderHome()">直近${v}日</button>`).join('')}</div>
+  <div class="hero"><div class="hero-top">${naka(64,cm.mood)}<div class="bubble">${cm.m}</div></div>
+    <button class="btn yuzu block" onclick="askCoach(lastAnaSummary)">ナカジマにくわしく分析してもらう</button></div>
+  <div class="card"><div class="hrow"><h2>主な指標</h2><span class="muted small">▲▼は直前の${n}日との比較</span></div><div class="kpis">${kpis}</div></div>
+  <div class="card"><h2>カロリーの推移</h2>${barChart({days, vals:kv, color:(v,i)=>v===0?'var(--line)':v>budgetFor(days[i],k)?'var(--tomato)':'var(--sea)', line:k.intake, lineLabel:`目標 ${fmt(k.intake)}`, label:'1日の摂取カロリー'})}
+    <p class="cap">青は目安内、赤は目安オーバーの日です。</p></div>
+  <div class="card"><h2>体重：実績と計画</h2>${wp.svg}${wp.note?`<p class="small" style="margin:8px 0 0">${wp.note}</p>`:''}<p class="cap">青い線が実績、点線が計画ペースです。</p></div>
+  <div class="card"><h2>PFCバランス（エネルギー比）</h2>${pfcDonut(cur,k)}</div>
+  <div class="card"><h2>栄養素の達成率（1日平均）</h2>${achBars(cur,k)}</div>
+  <div class="card"><h2>食事区分別のカロリー（1日平均）</h2>
+    ${cl?MEAL_TYPES.map(t=>`<div class="ach"><div class="row"><span>${t}</span><span class="v">${fmt(cur.byType[t])} kcal</span></div><div class="track"><div class="fill" style="width:${cur.byType[t]/tmax*100}%;background:var(--sea)"></div></div></div>`).join(''):'<p class="muted small" style="margin:0">記録がたまったら表示されるき。</p>'}</div>
+  <div class="card"><h2>歩数の推移</h2>${barChart({days, vals:days.map(d=>dayTotals(d).steps), color:v=>v===0?'var(--line)':v>=(S.settings.stepGoal||8000)?'var(--leaf)':'var(--sea)', line:S.settings.stepGoal||8000, lineLabel:`目標 ${fmt(S.settings.stepGoal||8000)}歩`, label:'1日の歩数'})}<p class="cap">緑は目標達成の日です。ヘルスケアから取り込んだ値を表示しています。</p></div>
+  <div class="card"><h2>運動消費の推移</h2>${barChart({days, vals:ev, color:v=>v===0?'var(--line)':'var(--leaf)', label:'1日の運動消費'})}<p class="cap">ヘルスケアのアクティブエネルギー＋手入力の運動の合計です。</p></div>
+  <div class="card"><h2>記録カレンダー（12週）</h2>${heatmap(k)}</div>`;
+}
+
+/* ================= ヘルスケア取り込み ================= */
+function parseHealth(text){
+  const out=[]; if(!text) return out;
+  String(text).split(/[\n\r]+/).map(x=>x.trim()).filter(Boolean).forEach(l=>{
+    const num=key=>{ const m=l.match(new RegExp(key+'\\s*[=:：]\\s*([\\d.,]+)','i')); if(!m) return null; const v=parseFloat(m[1].replace(/,/g,'')); return isFinite(v)?v:null; };
+    const dm=l.match(/date\s*[=:：]\s*(\d{4})[-\/.年](\d{1,2})[-\/.月](\d{1,2})/i);
+    const date=dm?`${dm[1]}-${z2(dm[2])}-${z2(dm[3])}`:todayStr();
+    const active=num('active'), steps=num('steps');
+    if(active!=null||steps!=null) out.push({date,active,steps});
+  });
+  return out;
+}
+function applyHealth(recs){
+  S.health=S.health||{};
+  recs.forEach(r=>{ const o=S.health[r.date]||{};
+    S.health[r.date]={ active: r.active!=null?Math.round(r.active):(o.active||0), steps: r.steps!=null?Math.round(r.steps):(o.steps||0), ts:Date.now() }; });
+  save();
+  const last=recs[recs.length-1], h=S.health[last.date];
+  toast(`ヘルスケアから取り込んだぜよ！（${fmt(h.steps)}歩・${fmt(h.active)}kcal）`);
+  if(view==='log') go('home'); else render();
+}
+function handleHealthText(t){
+  const r=parseHealth(t);
+  if(!r.length) return toast('ヘルスケアのデータが見つからんかったき。ショートカットの出力を確認してや');
+  applyHealth(r);
+}
+async function importFromClipboard(){
+  try{
+    if(!navigator.clipboard||!navigator.clipboard.readText) throw new Error('unsupported');
+    handleHealthText(await navigator.clipboard.readText());
+  }catch(e){
+    toast('貼り付けできんかったき、「記録」→「ヘルスケア」の欄に長押しで貼り付けてや');
+    if(view!=='log'){ logMode='health'; go('log'); }
+  }
+}
+function delHealth(d){ if(!confirm('この日のヘルスケア取り込みを削除しますか？')) return; delete S.health[d]; save(); render(); }
+function healthCard(t){
+  const d=todayStr(), h=(S.health||{})[d], goal=S.settings.stepGoal||8000, sp=Math.min(t.steps/goal*100,100);
+  const time=h?new Date(h.ts).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'}):'';
+  return `<div class="card"><div class="hrow"><h2>ヘルスケア</h2><button class="btn ghost sm" onclick="importFromClipboard()">📋 取り込む</button></div>
+    <div class="hc">
+      <div class="hc1"><div class="hl">👟 歩数</div><b>${h?fmt(t.steps):'—'}</b><small>歩</small>
+        <div class="tbar"><i style="width:${sp}%;background:${t.steps>=goal?'var(--leaf)':'var(--sea)'}"></i></div><div class="hs2">${t.steps>=goal?'目標達成！':`目標 ${fmt(goal)}歩まで あと${fmt(Math.max(goal-t.steps,0))}`}</div></div>
+      <div class="hc1"><div class="hl">🔥 アクティブエネルギー</div><b>${h?fmt(t.exHealth):'—'}</b><small>kcal</small>
+        <div class="hs2" style="margin-top:6px">${t.exManual?`手入力の運動 +${fmt(t.exManual)}kcal`:'手入力の運動 なし'}</div></div>
+    </div>
+    <p class="cap">${h?`${time}に取り込み。取り込み直すと上書きされるき、何回でも大丈夫ぜよ。`:'まだ今日の取り込みがないき。ショートカットを実行してから「取り込む」を押してや。'}</p></div>`;
+}
+
+/* ================= TIPS（内蔵） ================= */
 function renderTipsCard(){
   const el=$('#tips-card'); if(!el) return;
-  const online = S.tips && S.tips.items && S.tips.items.length;
-  const di=Math.floor(Date.now()/864e5);
-  const items = online ? S.tips.items : [0,1,2].map(i=>STATIC_TIPS[(di+i*3)%STATIC_TIPS.length]);
-  el.innerHTML=`<div class="hrow"><div class="minihead">${naka(34,'cheer')}<h2 style="margin:0">今日の食事TIPS</h2></div>
-    ${S.settings.apiKey?`<button class="btn ghost sm" onclick="loadTips(true)" ${tipsLoading?'disabled':''}>${tipsLoading?'探し中…':'新しく探す'}</button>`:''}</div>
-    ${tipsLoading?`<p class="muted small" style="margin:0 0 6px">ナカジマがネットで最新のTIPSを探しているよ…</p>`:''}
-    ${items.map(t=>`<div class="tip"><b>${esc(t.title)}</b><p>${esc(t.body)}</p>${t.url&&/^https:\/\//.test(t.url)?`<a href="${esc(t.url)}" target="_blank" rel="noopener">出典：${esc(t.source||t.url)}</a>`:''}</div>`).join('')}
-    ${!S.settings.apiKey?`<p class="muted small" style="margin:8px 0 0">設定でAPIキーを登録すると、ネットから今日のきみに合うTIPSを持ってくるよ。</p>`:''}
-    ${!online && S.tipsErr && !tipsLoading?`<p class="muted small" style="margin:8px 0 0">ネット検索ができなかったので定番TIPSを表示中（${esc(S.tipsErr)}）</p>`:''}`;
-}
-async function loadTips(force){
-  if(!S.settings.apiKey) return toast('設定でAPIキーを登録してください');
-  if(tipsLoading) return;
-  tipsLoading=true; tipsTried=true; renderTipsCard();
-  try{
-    let focus='全般';
-    if(S.profile){ const k=calc(S.profile), t=dayTotals(todayStr()), wk=[];
-      if(k.protein-t.p>15) wk.push('たんぱく質の不足');
-      if(t.salt>k.salt*0.7) wk.push('塩分のとりすぎ');
-      if(k.fiber-t.fiber>8) wk.push('食物繊維の不足');
-      if(S.meals.slice(-20).filter(m=>m.source==='eatout').length>=3) wk.push('外食が多い');
-      if(wk.length) focus=wk.join('、'); }
-    const month=new Date().getMonth()+1;
-    const txt=await callClaude({
-      system:`あなたはカツオのキャラクター「ナカジマ」。ダイエット中のユーザーのために、ウェブ検索で信頼できる情報源（厚生労働省、農林水産省、e-ヘルスネット、大学・学会、管理栄養士が監修した記事など）を調べ、今日役立つ食事のTIPSを3つ選ぶ。
-出力はJSONのみ（前置き・コードブロック不要）。形式: {"tips":[{"title":"20字以内","body":"ナカジマの口調（一人称ぼく、相手はきみ）で70字以内。原文をそのまま写さず自分の言葉で要約","source":"サイト名","url":"実際に参照したページのURL"}]}
-極端な食事制限や断食をすすめる内容は選ばない。`,
-      messages:[{role:'user',content:`今日のテーマ候補: ${focus}。季節: ${month}月。すぐ実践できる具体的なTIPSを3つ。`}],
-      max_tokens:2500, tools:[{type:'web_search_20250305', name:'web_search', max_uses:3}]
-    });
-    const j=parseJSON(txt);
-    const items=(j.tips||[]).slice(0,3).map(t=>({title:String(t.title||''),body:String(t.body||''),source:String(t.source||''),url:String(t.url||'')}));
-    if(!items.length) throw new Error('TIPSが見つかりませんでした');
-    S.tips={date:todayStr(), items}; S.tipsErr=''; save();
-  }catch(e){ S.tipsErr=e.message; if(force) toast(e.message); }
-  tipsLoading=false; renderTipsCard();
+  const di=Math.floor(Date.now()/864e5), n=STATIC_TIPS.length;
+  const items=[0,1,2].map(i=>STATIC_TIPS[(di*3+i)%n]);
+  el.innerHTML=`<div class="minihead" style="margin-bottom:6px">${naka(34,'cheer')}<h2 style="margin:0">ナカジマの今日のTIPS</h2></div>
+    ${items.map(t=>`<div class="tip"><b>${esc(t.title)}</b><p>${esc(t.body)}</p></div>`).join('')}`;
 }
 
 /* ================= Claude API ================= */
@@ -601,7 +837,7 @@ function metaFields(){
     <div><label class="f" for="m-type">区分</label><select class="i" id="m-type">${MEAL_TYPES.map(t=>`<option ${t===defaultType()?'selected':''}>${t}</option>`).join('')}</select></div></div>`;
 }
 function renderLog(){
-  const modes=[['receipt','🧾 レシート'],['photo','📷 食事写真'],['eatout','🍽 外食'],['manual','✏️ 手入力'],['exercise','🏃 運動'],['weight','⚖️ 体重'],['belly','🫃 おなか']];
+  const modes=[['receipt','🧾 レシート'],['photo','📷 食事写真'],['eatout','🍽 外食'],['manual','✏️ 手入力'],['health','❤️ ヘルスケア'],['exercise','🏃 運動'],['weight','⚖️ 体重'],['belly','🫃 おなか']];
   $('#view-log').innerHTML = pending ? reviewHTML()
     : `<div class="seg">${modes.map(([m,l])=>`<button class="${m===logMode?'on':''}" onclick="logMode='${m}';renderLog()">${l}</button>`).join('')}</div>${formFor(logMode)}`;
   if(pending) refreshSum();
@@ -626,15 +862,32 @@ function formFor(m){
     <p class="muted small">パッケージの表示など、分かっている数値は直接入れられるよ。</p>
     <div class="grid3">${NK.map(([k,l])=>`<div><label class="f" for="n-${k}">${l}</label><input class="i" type="number" inputmode="decimal" step="0.1" id="n-${k}"></div>`).join('')}</div>
     ${metaFields()}<button class="btn primary block" onclick="saveManual()">記録する</button></div>`;
-  if(m==='exercise') return `<div class="card"><h2>運動を記録</h2>
+  if(m==='exercise') return `<div class="card"><h2>運動を記録（補助）</h2>
+    <div class="note ok small">歩数や日常の消費はヘルスケアから取り込むき、ここにはApple Watchを外しちょった時の運動など、ヘルスケアで計測できんかった分だけ入れてや。二重に数えんためぜよ。</div>
     <label class="f" for="x-act">種類</label>
-    <select class="i" id="x-act" onchange="exToggle()">${ACTS.map(([n],i)=>`<option value="${i}">${n}</option>`).join('')}<option value="steps">歩数から計算</option><option value="custom">消費kcalを直接入力（スマートウォッチ等）</option></select>
+    <select class="i" id="x-act" onchange="exToggle()">${ACTS.map(([n],i)=>`<option value="${i}">${n}</option>`).join('')}<option value="custom">消費kcalを直接入力（スマートウォッチ等）</option></select>
     <div id="x-min-row"><label class="f" for="x-min">時間（分）</label><input class="i" type="number" inputmode="numeric" id="x-min" placeholder="30"></div>
     <div id="x-steps-row" hidden><label class="f" for="x-steps">歩数</label><input class="i" type="number" inputmode="numeric" id="x-steps" placeholder="8000"></div>
     <div id="x-kcal-row" hidden><label class="f" for="x-name">内容</label><input class="i" id="x-name" placeholder="例）スマートウォッチ合計"><label class="f" for="x-kcal">消費kcal（活動分）</label><input class="i" type="number" inputmode="numeric" id="x-kcal"></div>
     <label class="f" for="m-date">日付</label><input class="i" type="date" id="m-date" value="${todayStr()}">
     <p class="muted small">消費量は「METs × 体重 × 時間 × 1.05」の目安だよ。</p>
     <button class="btn primary block" onclick="saveEx()">記録する</button></div>`;
+  if(m==='health'){ const h=(S.health||{})[todayStr()]; return `<div class="card"><h2>ヘルスケアから取り込む</h2>
+    <p class="muted small" style="margin-top:0">iPhoneの「ショートカット」で歩数とアクティブエネルギーをコピーしたあと、下のボタンを押してや。同じ日は何回取り込んでも上書きされるき、二重にはならんぜよ。</p>
+    ${h?`<div class="note ok small">今日の取り込み済み：${fmt(h.steps)}歩・${fmt(h.active)}kcal</div>`:''}
+    <button class="btn yuzu block" onclick="importFromClipboard()">📋 コピーした内容を取り込む</button>
+    <label class="f" for="h-text">うまくいかん時は、ここに長押しで貼り付け</label>
+    <textarea class="i" id="h-text" placeholder="active=352;steps=8123"></textarea>
+    <button class="btn block" onclick="handleHealthText($('#h-text').value)">貼り付けた内容を取り込む</button>
+    <details class="guide"><summary>ショートカットの作り方</summary><ol>
+      <li>「ショートカット」アプリで「＋」を押し、名前を <b>MyDiet取り込み</b> にする</li>
+      <li>アクション「<b>ヘルスケアサンプルを検索</b>」を追加。種類＝<b>アクティブエネルギー</b>、条件＝<b>開始日が今日</b></li>
+      <li>アクション「<b>統計を計算</b>」を追加して「<b>合計</b>」を選ぶ</li>
+      <li>もう一度「ヘルスケアサンプルを検索」（種類＝<b>歩数</b>、開始日が今日）→「統計を計算（合計）」を追加</li>
+      <li>アクション「<b>テキスト</b>」を追加し、<code>active=</code>（1つ目の合計）<code>;steps=</code>（2つ目の合計）の形にする</li>
+      <li>アクション「<b>クリップボードにコピー</b>」を追加</li>
+      <li>実行してヘルスケアへのアクセスを許可したら、このアプリで「取り込む」を押す</li>
+    </ol><p class="muted small">「オートメーション」で毎晩決まった時刻に実行するよう設定しておくと、ボタンを押すだけになるき便利ぜよ。</p></details></div>`; }
   if(m==='weight') return `<div class="card"><h2>体重・腹囲を記録</h2>
     <p class="muted small" style="margin-top:0">毎朝、起きてトイレの後など同じ条件で測ると変化が読みやすいよ。</p>
     <div class="grid2"><div><label class="f" for="w-w">体重（kg）</label><input class="i" type="number" inputmode="decimal" step="0.1" id="w-w" value="${currentWeight()||''}"></div>
@@ -711,21 +964,21 @@ function saveMeal(){
   const items=pending.items.filter(i=>i.name||i.kcal).map(i=>{ const o={name:i.name}; NK.forEach(([k])=>o[k]=Math.round((+i[k]||0)*r*10)/10); return o; });
   if(!items.length) return toast('品目がありません');
   S.meals.push({id:uid(), date:pending.date, type:pending.type, source:pending.source, title:pending.title, items, ts:Date.now()});
-  pending=null; save(); toast('記録したよ！'); go('home');
+  pending=null; save(); toast('記録したぜよ！'); go('home');
 }
 function saveManual(){
   const name=$('#n-name').value.trim(), kcal=+$('#n-kcal').value;
   if(!name||!kcal) return toast('品名とkcalを入力してください（または「AIで推定」）');
   const it={name}; NK.forEach(([k])=>it[k]=+$('#n-'+k).value||0);
   S.meals.push({id:uid(), date:$('#m-date').value, type:$('#m-type').value, source:'manual', title:name, items:[it], ts:Date.now()});
-  save(); toast('記録したよ！'); go('home');
+  save(); toast('記録したぜよ！'); go('home');
 }
 function saveEx(){
   const v=$('#x-act').value, w=currentWeight()||60, date=$('#m-date').value; let rec;
   if(v==='custom'){ const kcal=+$('#x-kcal').value; if(!kcal) return toast('消費kcalを入力してください'); rec={name:$('#x-name').value||'運動',minutes:0,kcal}; }
   else if(v==='steps'){ const st=+$('#x-steps').value; if(!st) return toast('歩数を入力してください'); const min=st/100; rec={name:`歩数 ${st.toLocaleString()}歩`,minutes:Math.round(min),kcal:Math.round(3.5*w*min/60*1.05)}; }
   else { const min=+$('#x-min').value; if(!min) return toast('時間を入力してください'); const [n,me]=ACTS[+v]; rec={name:n,minutes:min,kcal:Math.round(me*w*min/60*1.05)}; }
-  S.exercises.push({id:uid(), date, ...rec}); save(); toast(`記録したよ！（約${rec.kcal}kcal）`); go('home');
+  S.exercises.push({id:uid(), date, ...rec}); save(); toast(`記録したぜよ！（約${rec.kcal}kcal）`); go('home');
 }
 function setWeight(date, weight, waist){
   if(!weight) return;
@@ -734,7 +987,7 @@ function setWeight(date, weight, waist){
 }
 function saveWeight(){
   const w=+$('#w-w').value; if(!w) return toast('体重を入力してください');
-  setWeight($('#m-date').value, w, +$('#w-waist').value||null); save(); toast('記録したよ！'); go('home');
+  setWeight($('#m-date').value, w, +$('#w-waist').value||null); save(); toast('記録したぜよ！'); go('home');
 }
 async function saveBelly(){
   const f=$('#b-img').files[0]; if(!f) return toast('写真を選んでください');
@@ -744,7 +997,7 @@ async function saveBelly(){
     const full=await resizeImage(f,1080,0.82), thumb=await resizeImage(f,360,0.75);
     await DB.put({id:uid(), date, ts:Date.now(), full, thumb, weight, waist, memo:$('#b-memo').value.trim()});
     if(weight) { setWeight(date, weight, waist); save(); }
-    toast('おなかの写真を記録したよ！'); go('body');
+    toast('おなかの写真を記録したぜよ！'); go('body');
   }catch(e){ toast('保存できませんでした：'+e.message); } finally{ busy(false); }
 }
 
@@ -783,7 +1036,7 @@ async function renderBody(){
       <figure onclick="openPhoto('${first.id}')"><img src="${first.thumb}" alt="最初のおなか写真"><figcaption>はじめ ${md(first.date)}${first.weight?`<b>${f1(first.weight)}kg</b>`:''}</figcaption></figure>
       <figure onclick="openPhoto('${last.id}')"><img src="${last.thumb}" alt="最新のおなか写真"><figcaption>いま ${md(last.date)}${last.weight?`<b>${f1(last.weight)}kg</b>`:''}</figcaption></figure></div>
       ${(dw!=null||dwa!=null)?`<div class="diffbar">${dw!=null?`体重 <span class="num">${dw>0?'+':''}${f1(dw)}kg</span>　`:''}${dwa!=null?`腹囲 <span class="num">${dwa>0?'+':''}${f1(dwa)}cm</span>`:''}</div>`:''}`;
-  } else compare=`<div class="minihead">${naka(44,'cheer')}<p class="small" style="margin:0">おなか写真を2枚以上記録すると、はじめといまを並べて比べられるよ。</p></div>`;
+  } else compare=`<div class="minihead">${naka(44,'cheer')}<p class="small" style="margin:0">おなか写真を2枚以上記録したら、はじめといまを並べて比べられるき。</p></div>`;
   const gallery = !bellyCache.length ? `<p class="muted small" style="margin:0">まだ写真がないよ。</p>`
     : bodyMode==='grid'
       ? `<div class="gal">${[...bellyCache].reverse().map(b=>`<button onclick="openPhoto('${b.id}')" aria-label="${b.date}の写真"><img src="${b.thumb}" alt="" loading="lazy"><span>${md(b.date)}${b.weight?` ${f1(b.weight)}kg`:''}</span></button>`).join('')}</div>`
@@ -829,9 +1082,9 @@ function renderGoal(){
     <button class="btn primary block" onclick="saveGoal()">試算して保存する</button></div>`;
   if(S.profile){
     const k=calc(S.profile), wk=k.weeks, warn=[];
-    if(k.targetAdjusted) warn.push(`理想の体重はBMI18.5（${f1(k.minW)}kg）を下回るため、${f1(k.target)}kgで試算しているよ。痩せすぎは体に負担がかかるんだ。`);
-    if(k.clamped) warn.push(`選んだペースだと摂取量が下限（${fmt(k.floor)}kcal）を下回るので、下限に合わせて期間を延ばしているよ。`);
-    if(k.tooSlow) warn.push('食事だけでは差がつきにくい体格だよ。運動を記録して消費を増やす作戦でいこう。');
+    if(k.targetAdjusted) warn.push(`理想の体重はBMI18.5（${f1(k.minW)}kg）を下回るき、${f1(k.target)}kgで試算しちゅうよ。痩せすぎは体に負担がかかるがよ。`);
+    if(k.clamped) warn.push(`選んだペースだと摂取量が下限（${fmt(k.floor)}kcal）を下回るき、下限に合わせて期間を延ばしちゅうよ。`);
+    if(k.tooSlow) warn.push('食事だけやと差がつきにくい体格ながよ。運動を記録して消費を増やす作戦でいこうぜよ。');
     out+=`<div class="card"><div class="minihead" style="margin-bottom:10px">${naka(40,'cheer')}<h2 style="margin:0">TO-BE までの試算</h2></div>
       ${warn.map(m=>`<div class="note warn">${m}</div>`).join('')}
       <dl class="kv">
@@ -857,7 +1110,7 @@ function saveGoal(){
   const p={sex:$('#g-sex').value, age:v('#g-age'), height:v('#g-h'), weight:v('#g-w'), waist:v('#g-waist')||null, activity:v('#g-act'), targetWeight:v('#g-t'), pace:v('#g-pace')};
   if(!p.age||!p.height||!p.weight||!p.targetWeight) return toast('年齢・身長・体重・理想の体重を入力してください');
   p.startDate=S.profile?.startDate||todayStr(); p.startWeight=S.profile?.startWeight||p.weight;
-  S.profile=p; setWeight(todayStr(), p.weight, p.waist); save(); toast('目標を保存したよ！'); render();
+  S.profile=p; setWeight(todayStr(), p.weight, p.waist); save(); toast('目標を保存したぜよ！'); render();
 }
 
 /* ================= ナカジマ（AIコーチ） ================= */
@@ -867,11 +1120,11 @@ function contextBlock(){
   const todays=S.meals.filter(m=>m.date===d).map(m=>`${m.type}: ${m.title||m.items.map(i=>i.name).join('、')}（${fmt(mealTotals(m).kcal)}kcal）`).join('\n')||'なし';
   const exs=S.exercises.filter(e=>e.date===d).map(e=>`${e.name} ${e.kcal}kcal`).join('、')||'なし';
   const week=[...Array(7)].map((_,i)=>{ const x=new Date(); x.setDate(x.getDate()-7+i); const s=todayStr(x), tt=dayTotals(s);
-    return `${s}: ${fmt(tt.kcal)}kcal P${Math.round(tt.p)} 繊維${f1(tt.fiber)} 塩分${f1(tt.salt)} 運動${fmt(tt.ex)}`; }).join('\n');
+    return `${s}: ${fmt(tt.kcal)}kcal P${Math.round(tt.p)} 繊維${f1(tt.fiber)} 塩分${f1(tt.salt)} 運動${fmt(tt.ex)} 歩数${fmt(tt.steps)}`; }).join('\n');
   const ws=sortedWeights().slice(-10).map(w=>`${w.date} ${w.weight}kg${w.waist?` 腹囲${w.waist}`:''}`).join(' / ');
   return `[プロフィール] ${S.profile.sex==='male'?'男性':'女性'} ${S.profile.age}歳 身長${S.profile.height}cm 現在${f1(k.w)}kg → 目標${f1(k.target)}kg（開始 ${S.profile.startDate} ${S.profile.startWeight}kg）
 [1日の目標] ${k.intake}kcal P${k.protein}g F${k.fat}g C${k.carb}g 繊維${k.fiber}g以上 塩分${k.salt}g未満 / 摂取下限 ${fmt(k.floor)}kcal
-[今日 ${d}] 目安${fmt(b)}kcal 摂取${fmt(t.kcal)}kcal（P${f1(t.p)} F${f1(t.f)} C${f1(t.c)} 繊維${f1(t.fiber)} 塩分${f1(t.salt)}）運動${fmt(t.ex)}kcal 残り${fmt(b-t.kcal)}kcal
+[今日 ${d}] 目安${fmt(b)}kcal 摂取${fmt(t.kcal)}kcal（P${f1(t.p)} F${f1(t.f)} C${f1(t.c)} 繊維${f1(t.fiber)} 塩分${f1(t.salt)}）運動${fmt(t.ex)}kcal（ヘルスケア${fmt(t.exHealth)}＋手入力${fmt(t.exManual)}）歩数${fmt(t.steps)}歩 残り${fmt(b-t.kcal)}kcal
 今日の食事:\n${todays}\n今日の運動: ${exs}
 [直近7日]\n${week}
 [体重の推移] ${ws||'記録なし'}
@@ -879,7 +1132,11 @@ function contextBlock(){
 }
 function chatSystem(){
   return `あなたは「ナカジマ」。カツオ（魚）の姿をした、このユーザー専属のダイエット伴走コーチ（管理栄養士と運動指導の知識を持つ）。
-話し方: 一人称は「ぼく」、ユーザーは「きみ」。明るく前向きで、小さながんばりを具体的に見つけてほめる。でも数字には正直で、ごまかさない。ときどき海や魚にちなんだたとえを少しだけ使う（使いすぎない）。日本語で250字前後、読みやすく。
+話し方: 一人称は「ぼく」、ユーザーは「きみ」。高知出身のカツオらしく、わかりやすい土佐弁で話す。
+・語尾を中心に「〜ぜよ」「〜き（〜だから）」「〜やき」「〜ちゅう（〜している）」「〜ちょる」「〜がよ」「〜かえ？（〜かい？）」「〜しいや（〜しなよ）」「〜やね」「〜けんど（けれど）」を自然に使う。
+・ときどき「まっこと（本当に）」「こじゃんと（とても）」「えい（良い）」「ちっくと（少し）」をまぜる。
+・標準語の人が読んで意味に迷わない程度にとどめ、なじみの薄い方言や毎文への詰め込みは避ける。数値・食品名・注意事項ははっきり伝える。
+明るく前向きで、小さながんばりを具体的に見つけてほめる。でも数字には正直で、ごまかさない。ときどき海や魚にちなんだたとえを少しだけ使う（使いすぎない）。日本語で250字前後、読みやすく。
 進め方: データを根拠に現状を一言でまとめ、「次の一手」を1〜2個、コンビニ商品や定食など具体例で提案する。必要なら1つだけ質問して、ユーザーの状況を深掘りする。
 安全ルール: 1日の摂取を下限未満にする提案、断食・極端な糖質ゼロ・下剤や利尿剤の使用は勧めない。週1kgを超える減量ペースは勧めない。持病・服薬・妊娠中、体調不良、または食べ吐きや食事への強い罪悪感・恐怖の兆候があれば、減量の話より医師や専門家への相談を優先して穏やかに促す。
 ${contextBlock()}
@@ -891,7 +1148,7 @@ function renderChat(){
   const msgs=S.chat.map(m=> m.role==='user'
     ? `<div class="mrow user"><div class="msg user">${fmtMsg(m.content)}</div></div>`
     : `<div class="mrow">${naka(34, m.err?'worry':'happy')}<div class="msg assistant${m.err?' err':''}">${fmtMsg(m.content)}</div></div>`).join('')
-    || `<div class="mrow">${naka(34,'cheer')}<div class="msg assistant">やあ、ナカジマだよ！食事のこと、運動のこと、気持ちのこと、なんでも話しかけてね。きみのペースで、ゴールまで一緒に泳ごう。</div></div>`;
+    || `<div class="mrow">${naka(34,'cheer')}<div class="msg assistant">やあ、ナカジマぜよ！食事のこと、運動のこと、気持ちのこと、なんでも話しかけてや。きみのペースで、ゴールまで一緒に泳ごうぜよ。</div></div>`;
   $('#view-chat').innerHTML=`<div class="card">
     <div class="coachhead">${naka(56,'cheer')}<div><b>ナカジマ</b><span>きみ専属のダイエット伴走コーチ</span></div></div>
     <div class="msgs" id="msgs">${msgs}${chatBusy?`<div class="mrow">${naka(34)}<span class="typing">考え中…</span></div>`:''}</div>
@@ -924,7 +1181,7 @@ async function reflect(auto){
 観点: 食習慣の傾向（時間帯・よく食べるもの・外食頻度）、つまずきやすい場面、効果があった工夫、好き嫌い、生活リズム、次に試すこと。
 箇条書きで最大600字。メモ本文だけを出力。医学的な診断や性格の決めつけは書かない。`,
       messages:[{role:'user',content:`[既存メモ]\n${S.notes||'なし'}\n\n${contextBlock()}\n\n[直近の会話]\n${convo}`}], max_tokens:900});
-    S.notes=out.trim(); S.lastReflect=todayStr(); save(); if(!auto) toast('学習メモを更新したよ');
+    S.notes=out.trim(); S.lastReflect=todayStr(); save(); if(!auto) toast('学習メモを更新したぜよ');
   }catch(e){ if(!auto) toast(e.message); }
   finally{ if(!auto) busy(false); }
 }
@@ -935,11 +1192,12 @@ function renderSettings(){
   $('#view-settings').innerHTML=`<div class="card"><h2>AI（Claude API）</h2>
     <label class="f" for="s-key">Anthropic APIキー</label><input class="i" type="password" id="s-key" value="${esc(S.settings.apiKey)}" placeholder="sk-ant-..." autocomplete="off">
     <label class="f" for="s-model">モデル</label><input class="i" id="s-model" value="${esc(S.settings.model)}">
-    <p class="muted small">キーはこの端末のブラウザ内にだけ保存され、コードやGitHubには含まれません。TIPSのネット検索には、Anthropic ConsoleでWeb検索を有効にしておく必要があります。</p>
+    <p class="muted small">キーはこの端末のブラウザ内にだけ保存され、コードやGitHubには含まれません。</p>
     <label class="f" for="s-eat">運動消費のうち食事に上乗せする割合（%）</label><input class="i" type="number" inputmode="numeric" id="s-eat" value="${S.settings.eatBack}">
+    <label class="f" for="s-steps">歩数の目標（歩/日）</label><input class="i" type="number" inputmode="numeric" id="s-steps" value="${S.settings.stepGoal||8000}">
     <button class="btn primary block" onclick="saveSettings()">保存する</button></div>
   <div class="card"><div class="minihead" style="margin-bottom:10px">${naka(34)}<h2 style="margin:0">ナカジマの学習メモ</h2></div>
-    <p class="muted small" style="margin-top:0">会話と記録から毎日1回自動で更新されるよ。違っていたら直接直してね。</p>
+    <p class="muted small" style="margin-top:0">会話と記録から毎日1回、自動で更新するき。違っちょったら直接直してや。</p>
     <textarea class="i" id="s-notes" style="min-height:160px">${esc(S.notes)}</textarea>
     <button class="btn block" onclick="S.notes=$('#s-notes').value;save();toast('メモを保存しました')">メモを保存する</button></div>
   <div class="card"><h2>データ</h2>
@@ -948,7 +1206,7 @@ function renderSettings(){
     <label class="btn block" style="margin-top:8px">データを読み込む<input type="file" accept="application/json" hidden onchange="importData(this)"></label>
     <button class="btn ghost block" style="margin-top:8px;color:var(--tomato)" onclick="resetAll()">すべてのデータを削除する</button></div>`;
 }
-function saveSettings(){ S.settings.apiKey=$('#s-key').value.trim(); S.settings.model=$('#s-model').value.trim()||'claude-sonnet-4-6'; S.settings.eatBack=Math.min(100,Math.max(0,+$('#s-eat').value||0)); tipsTried=false; save(); toast('設定を保存しました'); }
+function saveSettings(){ S.settings.apiKey=$('#s-key').value.trim(); S.settings.model=$('#s-model').value.trim()||'claude-sonnet-4-6'; S.settings.eatBack=Math.min(100,Math.max(0,+$('#s-eat').value||0)); S.settings.stepGoal=Math.max(1000,+$('#s-steps').value||8000); save(); toast('設定を保存しました'); }
 async function exportData(){
   busy(true,'書き出し中…');
   try{ const {settings,...rest}=S; const belly=await DB.all();
@@ -971,6 +1229,8 @@ async function resetAll(){
   try{ await DB.clear(); }catch(e){} go('home');
 }
 
+S.health = S.health || {};
+try{ const q=new URLSearchParams(location.search).get('health'); if(q){ const r=parseHealth(q.replace(/[|]/g,'\n')); history.replaceState(null,'',location.pathname); if(r.length){ S.health=S.health||{}; r.forEach(x=>{ const o=S.health[x.date]||{}; S.health[x.date]={active:x.active!=null?Math.round(x.active):(o.active||0), steps:x.steps!=null?Math.round(x.steps):(o.steps||0), ts:Date.now()}; }); save(); setTimeout(()=>toast('ヘルスケアから取り込んだぜよ！'),300); } } }catch(e){}
 go(S.profile ? 'home' : 'goal');
 </script>
 </body>
