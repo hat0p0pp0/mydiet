@@ -255,6 +255,31 @@ table.tbl td.n{font-family:var(--num);text-align:right}
 .guide li{margin-bottom:6px}
 .guide code{background:var(--soft);border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:12.5px;word-break:break-all}
 
+/* ---- body quick entry / sheets ---- */
+.sheetwrap{align-items:flex-end;padding:0}
+.sheet{background:var(--card);width:100%;max-width:560px;border-radius:26px 26px 0 0;padding:14px 18px calc(20px + env(safe-area-inset-bottom,0px));max-height:92vh;overflow:auto;animation:sheetup .22s ease-out}
+@keyframes sheetup{from{transform:translateY(40px);opacity:.6}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion: reduce){.sheet{animation:none}}
+.sheet h2{font-size:18px;margin:0 0 4px;font-weight:800}
+.grab{width:42px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 14px}
+.bigin{display:grid;grid-template-columns:60px 1fr 60px;gap:10px;align-items:center;margin:14px 0 6px}
+.step{height:60px;border-radius:18px;border:1px solid var(--line);background:var(--soft);font-size:28px;font-weight:800;cursor:pointer;color:var(--ink)}
+.bigwrap{text-align:center}
+.bignum{width:100%;text-align:center;font-family:var(--num);font-size:48px;font-weight:800;border:none;background:transparent;padding:0;color:var(--ink)}
+.bignum:focus{outline:none;background:var(--soft);border-radius:12px}
+.unit{font-size:13px;color:var(--sub);font-weight:700;margin-top:-4px}
+.qrow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.qbtn{border:1px solid var(--line);background:var(--soft);border-radius:18px;padding:14px 12px;text-align:left;cursor:pointer;color:var(--ink)}
+.qbtn .qt{font-weight:800;font-size:15px}
+.qbtn .qs{font-size:12px;color:var(--sub);margin-top:2px}
+.qbtn.done{background:var(--leaf-soft);border-color:transparent}
+label.btn input[type=file]{display:none}
+.bprev{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.bprev.single{grid-template-columns:1fr}
+.bprev img,.bprev .ph{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:14px;display:block}
+.bprev .ph{border:2px dashed var(--line);display:flex;align-items:center;justify-content:center;color:var(--sub);font-size:13px;text-align:center;padding:10px}
+.bprev .mini{font-size:12px;color:var(--sub);font-weight:700;margin-bottom:4px}
+
 /* ---- nav ---- */
 nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);z-index:20}
 nav.tabs .in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
@@ -296,6 +321,7 @@ nav.tabs button.add .dot svg{stroke:#0E2A47;stroke-width:2.6}
 </div></nav>
 
 <div class="modal" id="modal" onclick="if(event.target===this)closeModal()"><div class="mbox" id="mbox"></div></div>
+<div class="modal sheetwrap" id="sheet" onclick="if(event.target===this)closeSheet()"><div class="sheet" id="sheetbox" role="dialog" aria-modal="true"></div></div>
 <div class="toast" id="toast"></div>
 <div class="busy" id="busy"><div class="box"><span id="busy-fish"></span><span id="busy-msg">解析中…</span></div></div>
 
@@ -543,6 +569,8 @@ function renderHome(){
 
   ${healthCard(t)}
 
+  <div class="card"><h2>からだの記録</h2>${bodyQuick()}</div>
+
   <div class="card">
     <div class="hrow"><h2>ゴールまでの航路</h2><span class="badge num">${Math.round(prog*100)}%</span></div>
     <div class="jtrack"><div class="jfill" style="width:${prog*100}%"></div><div class="jfish" style="left:${prog*100}%">${naka(40,prog>=1?'cheer':'happy')}</div><div class="jflag">🏁</div></div>
@@ -738,6 +766,83 @@ function analysisHTML(){
   <div class="card"><h2>記録カレンダー（12週）</h2>${heatmap(k)}</div>`;
 }
 
+/* ================= からだのクイック入力（体重・おなか） ================= */
+function bodyQuick(){
+  const w=weightOn(todayStr()), bl=S.bellyLast||'';
+  const days=bl?Math.round((new Date(todayStr())-new Date(bl))/864e5):null;
+  return `<div class="qrow">
+    <button class="qbtn ${w?'done':''}" onclick="openWeightSheet()"><div class="qt">⚖️ 体重</div><div class="qs">${w?`今日 ${f1(w.weight)}kg ✓`:'今日はまだ・タップで記録'}</div></button>
+    <button class="qbtn ${days!=null&&days<7?'done':''}" onclick="openBellySheet()"><div class="qt">📷 おなか写真</div><div class="qs">${bl?(days===0?'今日撮影 ✓':`${days}日前に撮影`):'まだなし・週1がおすすめ'}</div></button></div>`;
+}
+function openSheet(html){ $('#sheetbox').innerHTML='<div class="grab"></div>'+html; $('#sheet').classList.add('show'); }
+function closeSheet(){ $('#sheet').classList.remove('show'); }
+function stepIn(id,d){ const el=$('#'+id); let v=parseFloat(el.value); if(!isFinite(v)) v=id==='sw-waist'?(currentWaist()||80):(currentWeight()||60); el.value=(Math.round((v+d)*10)/10).toFixed(1); }
+function openWeightSheet(){
+  const d=todayStr(), today=weightOn(d), prev=[...sortedWeights()].reverse().find(w=>w.date<d);
+  const base=today?today.weight:(prev?prev.weight:(S.profile?.weight||60)), wa=today&&today.waist?today.waist:(currentWaist()||'');
+  openSheet(`<h2>⚖️ 体重を記録</h2>
+    <p class="muted small" style="margin:0">${prev?`前回 ${f1(prev.weight)}kg（${md(prev.date)}）`:'はじめての記録ぜよ'}${today?'・今日の記録を上書きします':''}</p>
+    <div class="bigin"><button class="step" onclick="stepIn('sw-w',-0.1)" aria-label="0.1kg減らす">−</button>
+      <div class="bigwrap"><input class="bignum" id="sw-w" type="number" inputmode="decimal" step="0.1" value="${f1(base)}" aria-label="体重"><div class="unit">kg</div></div>
+      <button class="step" onclick="stepIn('sw-w',0.1)" aria-label="0.1kg増やす">＋</button></div>
+    <details class="guide" id="sw-wd" ${today&&today.waist?'open':''}><summary>腹囲も記録する（任意）</summary>
+      <div class="bigin"><button class="step" onclick="stepIn('sw-waist',-0.5)" aria-label="0.5cm減らす">−</button>
+        <div class="bigwrap"><input class="bignum" id="sw-waist" type="number" inputmode="decimal" step="0.5" value="${wa?f1(wa):''}" placeholder="—" aria-label="腹囲"><div class="unit">cm</div></div>
+        <button class="step" onclick="stepIn('sw-waist',0.5)" aria-label="0.5cm増やす">＋</button></div></details>
+    <label class="f" for="sw-date">日付</label><input class="i" type="date" id="sw-date" value="${d}">
+    <button class="btn yuzu block" onclick="saveWeightSheet()">記録する</button>
+    <button class="btn ghost block" style="margin-top:8px" onclick="closeSheet()">やめる</button>`);
+}
+function saveWeightSheet(){
+  const w=parseFloat($('#sw-w').value), date=$('#sw-date').value;
+  if(!(w>20&&w<300)) return toast('体重を入力してや');
+  const wa=$('#sw-wd').open?(parseFloat($('#sw-waist').value)||null):null;
+  const prev=[...sortedWeights()].reverse().find(x=>x.date<date);
+  setWeight(date,w,wa); save(); closeSheet();
+  if(prev){ const dl=w-prev.weight;
+    toast(dl<=-0.05?`前回から ${f1(dl)}kg、えい調子ぜよ！`: dl>=0.05?`前回から +${f1(dl)}kg。波はあるもんやき、気にせんでえいき！`:'前回とほぼ同じ。しっかりキープできちゅうぜよ！'); }
+  else toast('記録したぜよ！');
+  render();
+}
+let bellyFile=null;
+async function openBellySheet(){
+  bellyFile=null; let last=null;
+  try{ const all=await DB.all(); last=all[all.length-1]||null; }catch(e){}
+  const w=weightOn(todayStr());
+  openSheet(`<h2>📷 おなかを撮る</h2>
+    <p class="muted small" style="margin:0 0 12px">前回と同じ場所・距離・明るさで撮ると、変化がはっきり分かるき。</p>
+    <div class="qrow">
+      <label class="btn yuzu">📷 カメラで撮る<input type="file" accept="image/*" capture="environment" onchange="bellyPicked(this)"></label>
+      <label class="btn">🖼 写真から選ぶ<input type="file" accept="image/*" onchange="bellyPicked(this)"></label></div>
+    <div class="bprev ${last?'':'single'}">
+      <div><div class="mini">今回</div><div id="bnew"><div class="ph">上のボタンで撮影か選択してや</div></div></div>
+      ${last?`<div><div class="mini">前回 ${md(last.date)}${last.weight?`・${f1(last.weight)}kg`:''}</div><img src="${last.thumb}" alt="前回のおなか写真"></div>`:''}</div>
+    <div class="grid2"><div><label class="f" for="sb-w">体重（kg・任意）</label><input class="i" type="number" inputmode="decimal" step="0.1" id="sb-w" value="${w?w.weight:''}"></div>
+      <div><label class="f" for="sb-waist">腹囲（cm・任意）</label><input class="i" type="number" inputmode="decimal" step="0.1" id="sb-waist" value="${w&&w.waist?w.waist:''}"></div></div>
+    <div class="grid2"><div><label class="f" for="sb-date">日付</label><input class="i" type="date" id="sb-date" value="${todayStr()}"></div>
+      <div><label class="f" for="sb-memo">メモ（任意）</label><input class="i" id="sb-memo" placeholder="例）朝・起床後"></div></div>
+    <div class="privacy">🔒 写真はこのスマホの中だけに保存され、AIやインターネットには送られません。</div>
+    <button class="btn yuzu block" onclick="saveBellySheet()">写真を記録する</button>
+    <button class="btn ghost block" style="margin-top:8px" onclick="closeSheet()">やめる</button>`);
+}
+function bellyPicked(inp){
+  const f=inp.files&&inp.files[0]; if(!f) return; bellyFile=f;
+  $('#bnew').innerHTML=`<img src="${URL.createObjectURL(f)}" alt="今回のおなか写真">`;
+}
+async function saveBellySheet(){
+  if(!bellyFile) return toast('先に写真を撮るか選んでや');
+  const date=$('#sb-date').value, weight=parseFloat($('#sb-w').value)||null, waist=parseFloat($('#sb-waist').value)||null, memo=$('#sb-memo').value.trim();
+  busy(true,'写真を保存中…');
+  try{
+    const full=await resizeImage(bellyFile,1080,0.82), thumb=await resizeImage(bellyFile,360,0.75);
+    await DB.put({id:uid(), date, ts:Date.now(), full, thumb, weight, waist, memo});
+    if(weight) setWeight(date, weight, waist);
+    if(!S.bellyLast || date>S.bellyLast) S.bellyLast=date;
+    save(); bellyFile=null; closeSheet(); toast('おなかの写真を記録したぜよ！'); render();
+  }catch(e){ toast('保存できませんでした：'+e.message); }
+  finally{ busy(false); }
+}
+
 /* ================= ヘルスケア取り込み ================= */
 function parseHealth(text){
   const out=[]; if(!text) return out;
@@ -837,7 +942,7 @@ function metaFields(){
     <div><label class="f" for="m-type">区分</label><select class="i" id="m-type">${MEAL_TYPES.map(t=>`<option ${t===defaultType()?'selected':''}>${t}</option>`).join('')}</select></div></div>`;
 }
 function renderLog(){
-  const modes=[['receipt','🧾 レシート'],['photo','📷 食事写真'],['eatout','🍽 外食'],['manual','✏️ 手入力'],['health','❤️ ヘルスケア'],['exercise','🏃 運動'],['weight','⚖️ 体重'],['belly','🫃 おなか']];
+  const modes=[['receipt','🧾 レシート'],['photo','📷 食事写真'],['eatout','🍽 外食'],['manual','✏️ 手入力'],['health','❤️ ヘルスケア'],['exercise','🏃 運動']];
   $('#view-log').innerHTML = pending ? reviewHTML()
     : `<div class="seg">${modes.map(([m,l])=>`<button class="${m===logMode?'on':''}" onclick="logMode='${m}';renderLog()">${l}</button>`).join('')}</div>${formFor(logMode)}`;
   if(pending) refreshSum();
@@ -1022,6 +1127,7 @@ async function renderBody(){
   const el=$('#view-body');
   try{ bellyCache=await DB.all(); }catch(e){ bellyCache=[]; }
   if(view!=='body') return;
+  const lb=bellyCache.length?bellyCache[bellyCache.length-1].date:''; if((S.bellyLast||'')!==lb){ S.bellyLast=lb; save(); }
   const k=S.profile?calc(S.profile):null, ws=sortedWeights();
   const wPts=ws.slice(-30).map(w=>({date:w.date,v:w.weight})), waPts=ws.filter(w=>w.waist).slice(-30).map(w=>({date:w.date,v:w.waist}));
   let wkChange='';
@@ -1043,14 +1149,15 @@ async function renderBody(){
       : `<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>日付</th><th style="text-align:right">体重</th><th style="text-align:right">腹囲</th><th>メモ</th></tr></thead><tbody>
          ${[...bellyCache].reverse().map(b=>`<tr onclick="openPhoto('${b.id}')" style="cursor:pointer"><td class="num">${b.date}</td><td class="n">${b.weight?f1(b.weight):'—'}</td><td class="n">${b.waist?f1(b.waist):'—'}</td><td>${esc(b.memo||'')}</td></tr>`).join('')}</tbody></table></div>`;
   el.innerHTML=`
+    <div class="card"><h2>今日のからだ記録</h2>${bodyQuick()}</div>
     <div class="card"><div class="hrow"><h2>体重の推移</h2>${wkChange}</div>${lineChart(wPts,k?k.target:null,'kg','体重の推移')}
-      <button class="btn ghost sm" style="margin-top:10px" onclick="logMode='weight';go('log')">体重を記録</button></div>
+      <button class="btn ghost sm" style="margin-top:10px" onclick="openWeightSheet()">体重を記録</button></div>
     <div class="card"><h2>腹囲の推移</h2>${lineChart(waPts,k&&k.waistTarget?k.waistTarget:null,'cm','腹囲の推移')}</div>
     <div class="card"><h2>おなかの変化</h2>${compare}</div>
     <div class="card"><div class="hrow"><h2>おなか写真（${bellyCache.length}枚）</h2>
       <div class="seg" style="margin:0;padding:0"><button class="${bodyMode==='grid'?'on':''}" onclick="bodyMode='grid';renderBody()">写真</button><button class="${bodyMode==='list'?'on':''}" onclick="bodyMode='list';renderBody()">一覧表</button></div></div>
       ${gallery}
-      <button class="btn yuzu block" onclick="logMode='belly';go('log')">おなかの写真を追加する</button>
+      <button class="btn yuzu block" onclick="openBellySheet()">📷 おなかを撮る</button>
       <div class="privacy">🔒 写真はこのスマホの中だけに保存されています。</div></div>`;
 }
 function openPhoto(id){
